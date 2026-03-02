@@ -13,6 +13,8 @@ export default function Home() {
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [form, setForm] = useState({ title: '', author: '', note: '', submitted_by: '', book_url: '' })
+  const [pastReads, setPastReads] = useState([])
+  const [pastLoading, setPastLoading] = useState(false)
 
   useEffect(() => {
     let token = localStorage.getItem('voter_token')
@@ -27,7 +29,8 @@ export default function Home() {
   }, [])
 
   useEffect(() => {
-    fetchBooks()
+    if (sort === 'past') fetchPastReads()
+    else fetchBooks()
   }, [sort])
 
   async function fetchBooks() {
@@ -36,6 +39,20 @@ export default function Home() {
     const data = await res.json()
     setBooks(data)
     setLoading(false)
+  }
+
+  async function fetchPastReads() {
+    setPastLoading(true)
+    const res = await fetch('/api/past-reads')
+    const data = await res.json()
+    setPastReads(data)
+    setPastLoading(false)
+  }
+
+  function formatMonth(str) {
+    if (!str) return ''
+    const d = new Date(str + 'T00:00:00')
+    return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
   }
 
   async function handleSubmit() {
@@ -148,7 +165,7 @@ export default function Home() {
             color: '#aeaeb2',
             marginBottom: '14px',
           }}>
-            staying up with taryn & cammie
+            staying up with cammie & taryn
           </p>
           <h1 style={{
             fontFamily: "'Playfair Display', Georgia, serif",
@@ -190,25 +207,30 @@ export default function Home() {
               borderRadius: '10px',
               padding: '3px',
             }}>
-              {['votes', 'recent'].map(s => (
+              {[
+                { key: 'votes', label: 'Top' },
+                { key: 'recent', label: 'Recent' },
+                { key: 'past', label: 'Past Reads' },
+              ].map(({ key, label }) => (
                 <button
-                  key={s}
-                  onClick={() => setSort(s)}
+                  key={key}
+                  onClick={() => setSort(key)}
                   style={{
-                    padding: '7px 22px',
+                    padding: '7px 16px',
                     fontSize: '14px',
-                    fontWeight: sort === s ? 600 : 400,
+                    fontWeight: sort === key ? 600 : 400,
                     fontFamily: SYS,
                     border: 'none',
                     borderRadius: '8px',
-                    background: sort === s ? '#fff' : 'transparent',
-                    color: sort === s ? '#1d1d1f' : '#6e6e73',
+                    background: sort === key ? '#fff' : 'transparent',
+                    color: sort === key ? '#1d1d1f' : '#6e6e73',
                     cursor: 'pointer',
-                    boxShadow: sort === s ? '0 1px 4px rgba(0,0,0,0.12)' : 'none',
+                    boxShadow: sort === key ? '0 1px 4px rgba(0,0,0,0.12)' : 'none',
                     transition: 'all 0.18s ease',
+                    whiteSpace: 'nowrap',
                   }}
                 >
-                  {s === 'votes' ? 'Top' : 'Recent'}
+                  {label}
                 </button>
               ))}
             </div>
@@ -321,8 +343,104 @@ export default function Home() {
             </div>
           )}
 
-          {/* Book List */}
-          {loading ? (
+          {/* Past Reads */}
+          {sort === 'past' ? (
+            pastLoading ? (
+              <div style={{ textAlign: 'center', padding: '80px 0', color: '#aeaeb2', fontSize: '15px' }}>
+                Loading…
+              </div>
+            ) : pastReads.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '100px 0' }}>
+                <div style={{ fontSize: '15px', fontWeight: 600, color: '#1d1d1f', marginBottom: '6px' }}>
+                  No past reads yet
+                </div>
+                <div style={{ fontSize: '14px', color: '#aeaeb2' }}>Check back soon.</div>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {pastReads.map(book => (
+                  <div
+                    key={book.id}
+                    className="book-card"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '14px',
+                      background: '#fff',
+                      borderRadius: '14px',
+                      border: '1px solid rgba(0,0,0,0.07)',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+                      padding: '14px 18px',
+                    }}
+                  >
+                    {/* Cover */}
+                    <div
+                      className="card-cover"
+                      style={{
+                        flexShrink: 0,
+                        width: '48px',
+                        height: '68px',
+                        borderRadius: '6px',
+                        overflow: 'hidden',
+                        background: '#e5e5ea',
+                        boxShadow: '0 2px 6px rgba(0,0,0,0.10)',
+                      }}
+                    >
+                      {book.cover_image ? (
+                        <img
+                          src={book.cover_image}
+                          alt={book.title}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                        />
+                      ) : (
+                        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <span style={{ fontSize: '18px', color: '#aeaeb2' }}>{book.title.charAt(0).toUpperCase()}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Content */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div className="card-title" style={{ fontSize: '15px', fontWeight: 600, color: '#1d1d1f', lineHeight: 1.3, marginBottom: '2px' }}>
+                        {book.title}
+                      </div>
+                      {book.author && (
+                        <div style={{ fontSize: '13px', color: '#6e6e73' }}>{book.author}</div>
+                      )}
+                    </div>
+
+                    {/* Right: date + link */}
+                    <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '5px' }}>
+                      <span style={{ fontSize: '12px', fontWeight: 500, color: '#6e6e73', whiteSpace: 'nowrap' }}>
+                        {formatMonth(book.month)}
+                      </span>
+                      {book.patreon_url ? (
+                        <a
+                          href={book.patreon_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            color: '#8B2020',
+                            textDecoration: 'none',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          Watch / Listen ↗
+                        </a>
+                      ) : (
+                        <span style={{ fontSize: '11px', color: '#aeaeb2', whiteSpace: 'nowrap' }}>Recording coming soon</span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )
+          ) : (
+
+          /* Book List */
+          loading ? (
             <div style={{ textAlign: 'center', padding: '80px 0', color: '#aeaeb2', fontSize: '15px' }}>
               Loading…
             </div>
@@ -475,6 +593,7 @@ export default function Home() {
                 )
               })}
             </div>
+          )
           )}
         </main>
 
