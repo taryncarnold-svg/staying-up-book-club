@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react'
 
+const SYS = 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
+
 export default function Home() {
   const [books, setBooks] = useState([])
   const [votedIds, setVotedIds] = useState(new Set())
@@ -68,160 +70,190 @@ export default function Home() {
   const inputStyle = {
     width: '100%',
     padding: '11px 14px',
-    background: '#F5F0E8',
-    border: '1px solid #c8bfaa',
-    borderRadius: 0,
-    fontFamily: 'Georgia, serif',
-    fontSize: '14px',
-    color: '#1a1a1a',
+    background: '#fff',
+    border: '1px solid rgba(0,0,0,0.15)',
+    borderRadius: '10px',
+    fontFamily: SYS,
+    fontSize: '15px',
+    color: '#1d1d1f',
     outline: 'none',
     boxSizing: 'border-box',
-    transition: 'border-color 0.15s',
+    transition: 'border-color 0.15s, box-shadow 0.15s',
   }
 
   const labelStyle = {
     display: 'block',
-    fontSize: '9px',
-    letterSpacing: '3px',
-    textTransform: 'uppercase',
-    color: '#8B7355',
-    marginBottom: '5px',
-    fontFamily: 'Georgia, serif',
+    fontSize: '13px',
+    fontWeight: 500,
+    color: '#3a3a3c',
+    marginBottom: '6px',
+    fontFamily: SYS,
   }
 
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap');
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background: #F5F0E8; }
-        input:focus, textarea:focus { border-color: #8B7355 !important; }
-        input::placeholder, textarea::placeholder { color: #b8a98a; }
-        .book-card { transition: transform 0.18s ease, box-shadow 0.18s ease; }
-        .book-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.08) !important; }
-        .vote-pill { transition: all 0.15s ease; }
-        .vote-pill:not(.voted):hover { border-color: #8B2020 !important; background: rgba(139,32,32,0.04) !important; }
-        .vote-pill.voted:hover { background: #7a1b1b !important; }
-        .sort-btn { transition: all 0.15s; }
-        .submit-btn { transition: all 0.2s; }
-        .submit-btn:hover { background: #6e1818 !important; }
-        .form-container { animation: slideDown 0.2s ease; }
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500&display=swap');
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: #F5F5F7; font-family: ${SYS}; -webkit-font-smoothing: antialiased; }
+        input:focus, textarea:focus { border-color: #8B2020 !important; box-shadow: 0 0 0 3px rgba(139,32,32,0.12) !important; }
+        input::placeholder, textarea::placeholder { color: #aeaeb2; }
+
+        .book-card { transition: box-shadow 0.2s ease, transform 0.2s ease; }
+        .book-card:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,0,0,0.09) !important; }
+
+        .vote-btn { transition: background 0.15s ease, transform 0.1s ease; }
+        .vote-btn:not(.voted):hover { background: rgba(139,32,32,0.09) !important; }
+        .vote-btn:not(.voted):hover .vote-icon,
+        .vote-btn:not(.voted):hover .vote-label,
+        .vote-btn:not(.voted):hover .vote-count { color: #8B2020 !important; }
+        .vote-btn:active { transform: scale(0.94) !important; }
+        .vote-btn.voted { animation: votePop 0.28s ease forwards; }
+        .vote-btn.voted:hover { background: #7a1b1b !important; }
+        @keyframes votePop {
+          0%   { transform: scale(1); }
+          45%  { transform: scale(1.1); }
+          100% { transform: scale(1); }
+        }
+
+        .submit-cta:hover:not(:disabled) { background: #7a1b1b !important; }
+        .submit-cta:active:not(:disabled) { transform: scale(0.97); }
+        .cancel-btn:hover { background: rgba(0,0,0,0.07) !important; }
+
+        .form-slide { animation: slideDown 0.22s ease; }
         @keyframes slideDown {
           from { opacity: 0; transform: translateY(-8px); }
-          to { opacity: 1; transform: translateY(0); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 600px) {
+          .card-cover { width: 52px !important; height: 72px !important; }
+          .card-title { font-size: 15px !important; }
+          .vote-btn { padding: 10px 13px !important; min-width: 56px !important; }
+          .vote-count { font-size: 17px !important; }
+          .controls-row { flex-direction: column; align-items: stretch !important; gap: 12px !important; }
+          .submit-cta { width: 100%; }
         }
       `}</style>
 
-      <div style={{ minHeight: '100vh', background: '#F5F0E8', fontFamily: 'Georgia, serif' }}>
+      <div style={{ minHeight: '100vh', background: '#F5F5F7', fontFamily: SYS }}>
 
         {/* Header */}
-        <header style={{
-          borderBottom: '1px solid #c8bfaa',
-          padding: '56px 24px 40px',
-          textAlign: 'center',
-          background: '#F5F0E8',
-        }}>
+        <header style={{ padding: '64px 24px 48px', textAlign: 'center' }}>
           <p style={{
-            fontSize: '9px',
-            letterSpacing: '5px',
+            fontSize: '12px',
+            fontWeight: 500,
+            letterSpacing: '0.8px',
             textTransform: 'uppercase',
-            color: '#8B7355',
+            color: '#aeaeb2',
             marginBottom: '14px',
-            fontFamily: 'Georgia, serif',
           }}>
             staying up with taryn & cammie
           </p>
           <h1 style={{
             fontFamily: "'Playfair Display', Georgia, serif",
-            fontSize: 'clamp(44px, 7vw, 72px)',
+            fontSize: 'clamp(42px, 7vw, 68px)',
             fontWeight: 400,
-            letterSpacing: '-1.5px',
-            color: '#1a1a1a',
-            lineHeight: 1,
-            marginBottom: '12px',
+            letterSpacing: '-1px',
+            color: '#1d1d1f',
+            lineHeight: 1.05,
+            marginBottom: '14px',
           }}>
             book club
           </h1>
-          <div style={{
-            width: '32px',
-            height: '1px',
-            background: '#8B2020',
-            margin: '16px auto 14px',
-          }} />
           <p style={{
-            fontSize: '13px',
-            color: '#8B7355',
-            fontStyle: 'italic',
-            letterSpacing: '0.3px',
+            fontSize: '17px',
+            color: '#6e6e73',
+            lineHeight: 1.5,
+            marginBottom: '0',
           }}>
-            submit a book you love · vote for what we read next
+            Vote on what we read next, or suggest a book you love.
           </p>
         </header>
 
         {/* Main */}
-        <main style={{ maxWidth: '720px', margin: '0 auto', padding: '36px 24px 80px' }}>
+        <main style={{ maxWidth: '680px', margin: '0 auto', padding: '0 20px 80px' }}>
 
           {/* Controls */}
-          <div style={{
+          <div className="controls-row" style={{
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            marginBottom: '24px',
+            gap: '12px',
+            marginBottom: '20px',
           }}>
-            <div style={{ display: 'flex', gap: '2px' }}>
+
+            {/* Segmented control */}
+            <div style={{
+              display: 'inline-flex',
+              background: 'rgba(0,0,0,0.06)',
+              borderRadius: '10px',
+              padding: '3px',
+            }}>
               {['votes', 'recent'].map(s => (
                 <button
                   key={s}
-                  className="sort-btn"
                   onClick={() => setSort(s)}
                   style={{
-                    padding: '7px 16px',
-                    fontSize: '9px',
-                    letterSpacing: '3px',
-                    textTransform: 'uppercase',
-                    fontFamily: 'Georgia, serif',
-                    border: '1px solid',
-                    borderColor: sort === s ? '#1a1a1a' : '#c8bfaa',
-                    background: sort === s ? '#1a1a1a' : 'transparent',
-                    color: sort === s ? '#F5F0E8' : '#8B7355',
+                    padding: '7px 22px',
+                    fontSize: '14px',
+                    fontWeight: sort === s ? 600 : 400,
+                    fontFamily: SYS,
+                    border: 'none',
+                    borderRadius: '8px',
+                    background: sort === s ? '#fff' : 'transparent',
+                    color: sort === s ? '#1d1d1f' : '#6e6e73',
                     cursor: 'pointer',
+                    boxShadow: sort === s ? '0 1px 4px rgba(0,0,0,0.12)' : 'none',
+                    transition: 'all 0.18s ease',
                   }}
                 >
-                  {s === 'votes' ? 'top' : 'recent'}
+                  {s === 'votes' ? 'Top' : 'Recent'}
                 </button>
               ))}
             </div>
 
-            <button
-              onClick={() => setShowForm(!showForm)}
-              style={{
-                padding: '9px 20px',
-                fontSize: '9px',
-                letterSpacing: '3px',
-                textTransform: 'uppercase',
-                fontFamily: 'Georgia, serif',
-                border: '1px solid #8B2020',
-                background: showForm ? '#8B2020' : 'transparent',
-                color: showForm ? '#F5F0E8' : '#8B2020',
-                cursor: 'pointer',
-                transition: 'all 0.15s',
-              }}
-            >
-              {showForm ? '✕ cancel' : '+ submit a book'}
-            </button>
+            {/* Primary CTA */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '5px' }}>
+              <button
+                className={showForm ? 'cancel-btn' : 'submit-cta'}
+                onClick={() => setShowForm(!showForm)}
+                style={{
+                  padding: '10px 22px',
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  fontFamily: SYS,
+                  background: showForm ? 'rgba(0,0,0,0.05)' : '#8B2020',
+                  color: showForm ? '#1d1d1f' : '#fff',
+                  border: 'none',
+                  borderRadius: '980px',
+                  cursor: 'pointer',
+                  transition: 'background 0.15s ease',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {showForm ? 'Cancel' : '+ Submit a Book'}
+              </button>
+              {!showForm && (
+                <span style={{ fontSize: '11px', color: '#aeaeb2', textAlign: 'right' }}>
+                  Add a book, then everyone can vote.
+                </span>
+              )}
+            </div>
           </div>
 
           {/* Form */}
           {showForm && (
-            <div className="form-container" style={{
-              background: '#EDE8DD',
-              border: '1px solid #c8bfaa',
-              padding: '32px',
-              marginBottom: '32px',
+            <div className="form-slide" style={{
+              background: '#fff',
+              borderRadius: '16px',
+              border: '1px solid rgba(0,0,0,0.08)',
+              padding: '28px',
+              marginBottom: '20px',
             }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
                 <div style={{ gridColumn: '1 / -1' }}>
-                  <label style={labelStyle}>Book Title *</label>
+                  <label style={labelStyle}>Book Title <span style={{ color: '#8B2020' }}>*</span></label>
                   <input
                     style={inputStyle}
                     value={form.title}
@@ -259,228 +291,198 @@ export default function Home() {
                 <div style={{ gridColumn: '1 / -1' }}>
                   <label style={labelStyle}>Why we'd love it</label>
                   <textarea
-                    style={{ ...inputStyle, resize: 'none', height: '72px' }}
+                    style={{ ...inputStyle, resize: 'none', height: '80px' }}
                     value={form.note}
                     onChange={e => setForm({ ...form, note: e.target.value })}
-                    placeholder="one sentence on why this book belongs in the club"
+                    placeholder="One sentence on why this book belongs in the club"
                   />
                 </div>
               </div>
               <button
-                className="submit-btn"
+                className="submit-cta"
                 onClick={handleSubmit}
                 disabled={!form.title.trim() || submitting}
                 style={{
                   width: '100%',
                   padding: '13px',
-                  background: form.title.trim() ? '#8B2020' : '#c8bfaa',
-                  color: '#F5F0E8',
+                  fontSize: '15px',
+                  fontWeight: 600,
+                  fontFamily: SYS,
+                  background: form.title.trim() ? '#8B2020' : '#d1d1d6',
+                  color: '#fff',
                   border: 'none',
-                  fontFamily: 'Georgia, serif',
-                  fontSize: '9px',
-                  letterSpacing: '3px',
-                  textTransform: 'uppercase',
+                  borderRadius: '12px',
                   cursor: form.title.trim() ? 'pointer' : 'not-allowed',
+                  transition: 'background 0.15s ease',
                 }}
               >
-                {submitting ? 'submitting...' : 'submit book'}
+                {submitting ? 'Submitting…' : 'Submit Book'}
               </button>
             </div>
           )}
 
           {/* Book List */}
           {loading ? (
-            <div style={{ textAlign: 'center', padding: '80px 0', color: '#8B7355', fontStyle: 'italic', fontSize: '14px' }}>
-              loading...
+            <div style={{ textAlign: 'center', padding: '80px 0', color: '#aeaeb2', fontSize: '15px' }}>
+              Loading…
             </div>
           ) : books.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '100px 0' }}>
-              <div style={{ fontSize: '11px', letterSpacing: '4px', textTransform: 'uppercase', color: '#c8bfaa', marginBottom: '12px' }}>
-                no submissions yet
+              <div style={{ fontSize: '15px', fontWeight: 600, color: '#1d1d1f', marginBottom: '6px' }}>
+                No books yet
               </div>
-              <div style={{ fontSize: '13px', color: '#8B7355', fontStyle: 'italic' }}>
-                be the first to suggest a book
+              <div style={{ fontSize: '14px', color: '#aeaeb2' }}>
+                Be the first to suggest one.
               </div>
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {books.map((book, i) => (
-                <div
-                  key={book.id}
-                  className="book-card"
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '16px',
-                    background: '#FFFFFF',
-                    borderRadius: '12px',
-                    border: '1px solid rgba(200,191,170,0.4)',
-                    boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
-                    padding: '16px 20px',
-                  }}
-                >
-                  {/* Cover */}
-                  <a
-                    href={book.book_url || undefined}
-                    target={book.book_url ? '_blank' : undefined}
-                    rel={book.book_url ? 'noopener noreferrer' : undefined}
+              {books.map((book, i) => {
+                const voted = votedIds.has(book.id)
+                return (
+                  <div
+                    key={book.id}
+                    className="book-card"
                     style={{
-                      flexShrink: 0,
-                      display: 'block',
-                      width: '64px',
-                      height: '90px',
-                      borderRadius: '6px',
-                      overflow: 'hidden',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
-                      background: '#d4cbb8',
-                      cursor: book.book_url ? 'pointer' : 'default',
-                    }}
-                  >
-                    {book.cover_image ? (
-                      <img
-                        src={book.cover_image}
-                        alt={book.title}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-                      />
-                    ) : (
-                      <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <span style={{
-                          fontFamily: "'Playfair Display', Georgia, serif",
-                          fontSize: '26px',
-                          color: '#8B7355',
-                          opacity: 0.5,
-                        }}>
-                          {book.title.charAt(0).toUpperCase()}
-                        </span>
-                      </div>
-                    )}
-                  </a>
-
-                  {/* Content */}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{
-                      fontSize: '9px',
-                      letterSpacing: '2px',
-                      textTransform: 'uppercase',
-                      color: '#d4cbb8',
-                      marginBottom: '5px',
-                    }}>
-                      #{i + 1}
-                    </div>
-                    {book.book_url ? (
-                      <a
-                        href={book.book_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{
-                          fontFamily: "'Playfair Display', Georgia, serif",
-                          fontSize: '16px',
-                          fontWeight: 400,
-                          color: '#1a1a1a',
-                          marginBottom: '3px',
-                          lineHeight: 1.3,
-                          textDecoration: 'none',
-                          display: 'block',
-                        }}
-                      >
-                        {book.title}
-                      </a>
-                    ) : (
-                      <div style={{
-                        fontFamily: "'Playfair Display', Georgia, serif",
-                        fontSize: '16px',
-                        fontWeight: 400,
-                        color: '#1a1a1a',
-                        marginBottom: '3px',
-                        lineHeight: 1.3,
-                      }}>
-                        {book.title}
-                      </div>
-                    )}
-                    {book.author && (
-                      <div style={{
-                        fontSize: '11px',
-                        color: '#8B7355',
-                        marginBottom: book.note ? '7px' : '0',
-                        letterSpacing: '0.3px',
-                      }}>
-                        {book.author}
-                      </div>
-                    )}
-                    {book.note && (
-                      <div style={{
-                        fontSize: '12px',
-                        color: '#6b5c45',
-                        fontStyle: 'italic',
-                        lineHeight: 1.5,
-                        marginBottom: book.submitted_by ? '7px' : '0',
-                      }}>
-                        "{book.note}"
-                      </div>
-                    )}
-                    {book.submitted_by && (
-                      <div style={{
-                        fontSize: '9px',
-                        letterSpacing: '2px',
-                        textTransform: 'uppercase',
-                        color: '#c8bfaa',
-                      }}>
-                        via {book.submitted_by}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Vote */}
-                  <button
-                    className={`vote-pill${votedIds.has(book.id) ? ' voted' : ''}`}
-                    onClick={() => handleVote(book.id)}
-                    style={{
-                      flexShrink: 0,
                       display: 'flex',
-                      flexDirection: 'column',
                       alignItems: 'center',
-                      gap: '3px',
-                      padding: '10px 16px',
-                      borderRadius: '10px',
-                      border: votedIds.has(book.id) ? '1.5px solid transparent' : '1.5px solid #d4cbb8',
-                      background: votedIds.has(book.id) ? '#8B2020' : 'transparent',
-                      cursor: 'pointer',
-                      minWidth: '52px',
+                      gap: '16px',
+                      background: '#fff',
+                      borderRadius: '14px',
+                      border: '1px solid rgba(0,0,0,0.07)',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+                      padding: '16px 20px',
                     }}
                   >
-                    <span style={{
-                      fontSize: '11px',
-                      color: votedIds.has(book.id) ? 'rgba(245,240,232,0.75)' : '#b8a98a',
-                      lineHeight: 1,
-                    }}>▲</span>
-                    <span style={{
-                      fontFamily: "'Playfair Display', Georgia, serif",
-                      fontSize: '20px',
-                      fontWeight: 400,
-                      color: votedIds.has(book.id) ? '#F5F0E8' : '#1a1a1a',
-                      lineHeight: 1,
-                    }}>
-                      {book.votes}
-                    </span>
-                  </button>
-                </div>
-              ))}
+                    {/* Cover */}
+                    <a
+                      href={book.book_url || undefined}
+                      target={book.book_url ? '_blank' : undefined}
+                      rel={book.book_url ? 'noopener noreferrer' : undefined}
+                      className="card-cover"
+                      style={{
+                        flexShrink: 0,
+                        display: 'block',
+                        width: '60px',
+                        height: '84px',
+                        borderRadius: '7px',
+                        overflow: 'hidden',
+                        background: '#e5e5ea',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+                        cursor: book.book_url ? 'pointer' : 'default',
+                      }}
+                    >
+                      {book.cover_image ? (
+                        <img
+                          src={book.cover_image}
+                          alt={book.title}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                        />
+                      ) : (
+                        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <span style={{ fontSize: '22px', color: '#aeaeb2' }}>
+                            {book.title.charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                      )}
+                    </a>
+
+                    {/* Content */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: '11px', fontWeight: 500, color: '#aeaeb2', marginBottom: '4px' }}>
+                        #{i + 1}
+                      </div>
+                      {book.book_url ? (
+                        <a
+                          href={book.book_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="card-title"
+                          style={{
+                            fontSize: '16px',
+                            fontWeight: 600,
+                            color: '#1d1d1f',
+                            lineHeight: 1.3,
+                            textDecoration: 'none',
+                            display: 'block',
+                            marginBottom: '3px',
+                          }}
+                        >
+                          {book.title}
+                        </a>
+                      ) : (
+                        <div
+                          className="card-title"
+                          style={{ fontSize: '16px', fontWeight: 600, color: '#1d1d1f', lineHeight: 1.3, marginBottom: '3px' }}
+                        >
+                          {book.title}
+                        </div>
+                      )}
+                      {book.author && (
+                        <div style={{ fontSize: '13px', color: '#6e6e73', marginBottom: book.note ? '6px' : 0 }}>
+                          {book.author}
+                        </div>
+                      )}
+                      {book.note && (
+                        <div style={{
+                          fontSize: '13px',
+                          color: '#6e6e73',
+                          fontStyle: 'italic',
+                          lineHeight: 1.45,
+                          marginBottom: book.submitted_by ? '5px' : 0,
+                        }}>
+                          "{book.note}"
+                        </div>
+                      )}
+                      {book.submitted_by && (
+                        <div style={{ fontSize: '11px', color: '#aeaeb2', fontWeight: 500 }}>
+                          via {book.submitted_by}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Vote */}
+                    <button
+                      className={`vote-btn${voted ? ' voted' : ''}`}
+                      onClick={() => handleVote(book.id)}
+                      style={{
+                        flexShrink: 0,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '2px',
+                        padding: '12px 16px',
+                        borderRadius: '12px',
+                        border: 'none',
+                        background: voted ? '#8B2020' : 'rgba(0,0,0,0.05)',
+                        cursor: 'pointer',
+                        minWidth: '62px',
+                        minHeight: '60px',
+                      }}
+                    >
+                      <span className="vote-icon" style={{ fontSize: '13px', color: voted ? 'rgba(255,255,255,0.85)' : '#6e6e73', lineHeight: 1 }}>
+                        {voted ? '✓' : '▲'}
+                      </span>
+                      <span className="vote-count" style={{ fontSize: '19px', fontWeight: 700, color: voted ? '#fff' : '#1d1d1f', lineHeight: 1.1 }}>
+                        {book.votes}
+                      </span>
+                      <span className="vote-label" style={{ fontSize: '11px', fontWeight: 600, color: voted ? 'rgba(255,255,255,0.75)' : '#aeaeb2', lineHeight: 1, letterSpacing: '0.2px' }}>
+                        {voted ? 'Voted' : 'Vote'}
+                      </span>
+                    </button>
+                  </div>
+                )
+              })}
             </div>
           )}
         </main>
 
         {/* Footer */}
-        <footer style={{
-          borderTop: '1px solid #c8bfaa',
-          padding: '28px 24px',
-          textAlign: 'center',
-          fontSize: '9px',
-          letterSpacing: '4px',
-          textTransform: 'uppercase',
-          color: '#c8bfaa',
-        }}>
+        <footer style={{ textAlign: 'center', padding: '32px 24px', fontSize: '12px', color: '#aeaeb2' }}>
           staying up · book club
         </footer>
+
       </div>
     </>
   )
