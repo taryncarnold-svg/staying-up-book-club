@@ -210,7 +210,7 @@ export default function Home() {
               {[
                 { key: 'votes', label: 'Top' },
                 { key: 'recent', label: 'Recent' },
-                { key: 'past', label: 'Past Reads' },
+                { key: 'past', label: 'Past reads' },
               ].map(({ key, label }) => (
                 <button
                   key={key}
@@ -254,7 +254,7 @@ export default function Home() {
                   whiteSpace: 'nowrap',
                 }}
               >
-                {showForm ? 'Cancel' : '+ Submit a Book'}
+                {showForm ? 'Cancel' : '+ Submit a book'}
               </button>
               {!showForm && (
                 <span style={{ fontSize: '11px', color: '#aeaeb2', textAlign: 'right' }}>
