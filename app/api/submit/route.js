@@ -1,15 +1,6 @@
 import { supabase } from '@/lib/supabase'
 import { NextResponse } from 'next/server'
-
-async function fetchCoverImage(url) {
-  try {
-    const res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' }, signal: AbortSignal.timeout(5000) })
-    const html = await res.text()
-    const match = html.match(/<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']+)["']/i)
-      || html.match(/<meta[^>]*content=["']([^"']+)["'][^>]*property=["']og:image["']/i)
-    return match ? match[1] : null
-  } catch { return null }
-}
+import { fetchCoverImage } from '@/lib/fetchCoverImage'
 
 export async function POST(request) {
   const { title, author, note, submitted_by, book_url } = await request.json()

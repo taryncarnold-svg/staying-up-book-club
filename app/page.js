@@ -97,16 +97,15 @@ export default function Home() {
         body { background: #F5F0E8; }
         input:focus, textarea:focus { border-color: #8B7355 !important; }
         input::placeholder, textarea::placeholder { color: #b8a98a; }
-        .book-card { transition: background 0.15s; }
-        .book-card:hover { background: #E8E2D6 !important; }
-        .vote-btn { transition: all 0.15s; }
-        .vote-btn:hover { opacity: 0.85; }
+        .book-card { transition: transform 0.18s ease, box-shadow 0.18s ease; }
+        .book-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.08) !important; }
+        .vote-pill { transition: all 0.15s ease; }
+        .vote-pill:not(.voted):hover { border-color: #8B2020 !important; background: rgba(139,32,32,0.04) !important; }
+        .vote-pill.voted:hover { background: #7a1b1b !important; }
         .sort-btn { transition: all 0.15s; }
         .submit-btn { transition: all 0.2s; }
         .submit-btn:hover { background: #6e1818 !important; }
-        .form-container {
-          animation: slideDown 0.2s ease;
-        }
+        .form-container { animation: slideDown 0.2s ease; }
         @keyframes slideDown {
           from { opacity: 0; transform: translateY(-8px); }
           to { opacity: 1; transform: translateY(0); }
@@ -304,62 +303,39 @@ export default function Home() {
               </div>
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {books.map((book, i) => (
                 <div
                   key={book.id}
                   className="book-card"
                   style={{
                     display: 'flex',
-                    background: '#EDE8DD',
-                    border: '1px solid #c8bfaa',
-                    overflow: 'hidden',
+                    alignItems: 'center',
+                    gap: '16px',
+                    background: '#FFFFFF',
+                    borderRadius: '12px',
+                    border: '1px solid rgba(200,191,170,0.4)',
+                    boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+                    padding: '16px 20px',
                   }}
                 >
-                  {/* Vote */}
-                  <button
-                    className="vote-btn"
-                    onClick={() => handleVote(book.id)}
+                  {/* Cover */}
+                  <a
+                    href={book.book_url || undefined}
+                    target={book.book_url ? '_blank' : undefined}
+                    rel={book.book_url ? 'noopener noreferrer' : undefined}
                     style={{
-                      width: '64px',
                       flexShrink: 0,
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '5px',
-                      border: 'none',
-                      borderRight: '1px solid #c8bfaa',
-                      background: votedIds.has(book.id) ? '#8B2020' : 'transparent',
-                      cursor: 'pointer',
-                      padding: '16px 0',
+                      display: 'block',
+                      width: '64px',
+                      height: '90px',
+                      borderRadius: '6px',
+                      overflow: 'hidden',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+                      background: '#d4cbb8',
+                      cursor: book.book_url ? 'pointer' : 'default',
                     }}
                   >
-                    <span style={{
-                      fontSize: '8px',
-                      color: votedIds.has(book.id) ? 'rgba(245,240,232,0.7)' : '#c8bfaa',
-                      lineHeight: 1,
-                    }}>▲</span>
-                    <span style={{
-                      fontFamily: "'Playfair Display', Georgia, serif",
-                      fontSize: '20px',
-                      fontWeight: 400,
-                      color: votedIds.has(book.id) ? '#F5F0E8' : '#1a1a1a',
-                      lineHeight: 1,
-                    }}>{book.votes}</span>
-                  </button>
-
-                  {/* Cover */}
-                  <div style={{
-                    width: '72px',
-                    flexShrink: 0,
-                    background: '#d4cbb8',
-                    borderRight: '1px solid #c8bfaa',
-                    overflow: 'hidden',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}>
                     {book.cover_image ? (
                       <img
                         src={book.cover_image}
@@ -367,34 +343,65 @@ export default function Home() {
                         style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                       />
                     ) : (
-                      <span style={{
-                        fontFamily: "'Playfair Display', Georgia, serif",
-                        fontSize: '28px',
-                        color: '#8B7355',
-                        opacity: 0.5,
-                      }}>
-                        {book.title.charAt(0).toUpperCase()}
-                      </span>
+                      <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <span style={{
+                          fontFamily: "'Playfair Display', Georgia, serif",
+                          fontSize: '26px',
+                          color: '#8B7355',
+                          opacity: 0.5,
+                        }}>
+                          {book.title.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
                     )}
-                  </div>
+                  </a>
 
                   {/* Content */}
-                  <div style={{ padding: '16px 20px', flex: 1, minWidth: 0 }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{
-                      fontFamily: "'Playfair Display', Georgia, serif",
-                      fontSize: '16px',
-                      fontWeight: 400,
-                      color: '#1a1a1a',
-                      marginBottom: '3px',
-                      lineHeight: 1.3,
+                      fontSize: '9px',
+                      letterSpacing: '2px',
+                      textTransform: 'uppercase',
+                      color: '#d4cbb8',
+                      marginBottom: '5px',
                     }}>
-                      {book.title}
+                      #{i + 1}
                     </div>
+                    {book.book_url ? (
+                      <a
+                        href={book.book_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          fontFamily: "'Playfair Display', Georgia, serif",
+                          fontSize: '16px',
+                          fontWeight: 400,
+                          color: '#1a1a1a',
+                          marginBottom: '3px',
+                          lineHeight: 1.3,
+                          textDecoration: 'none',
+                          display: 'block',
+                        }}
+                      >
+                        {book.title}
+                      </a>
+                    ) : (
+                      <div style={{
+                        fontFamily: "'Playfair Display', Georgia, serif",
+                        fontSize: '16px',
+                        fontWeight: 400,
+                        color: '#1a1a1a',
+                        marginBottom: '3px',
+                        lineHeight: 1.3,
+                      }}>
+                        {book.title}
+                      </div>
+                    )}
                     {book.author && (
                       <div style={{
                         fontSize: '11px',
                         color: '#8B7355',
-                        marginBottom: book.note ? '8px' : '0',
+                        marginBottom: book.note ? '7px' : '0',
                         letterSpacing: '0.3px',
                       }}>
                         {book.author}
@@ -406,7 +413,7 @@ export default function Home() {
                         color: '#6b5c45',
                         fontStyle: 'italic',
                         lineHeight: 1.5,
-                        marginBottom: book.submitted_by ? '8px' : '0',
+                        marginBottom: book.submitted_by ? '7px' : '0',
                       }}>
                         "{book.note}"
                       </div>
@@ -423,19 +430,39 @@ export default function Home() {
                     )}
                   </div>
 
-                  {/* Rank */}
-                  <div style={{
-                    width: '36px',
-                    flexShrink: 0,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '10px',
-                    color: '#d4cbb8',
-                    fontFamily: 'Georgia, serif',
-                  }}>
-                    {i + 1}
-                  </div>
+                  {/* Vote */}
+                  <button
+                    className={`vote-pill${votedIds.has(book.id) ? ' voted' : ''}`}
+                    onClick={() => handleVote(book.id)}
+                    style={{
+                      flexShrink: 0,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: '3px',
+                      padding: '10px 16px',
+                      borderRadius: '10px',
+                      border: votedIds.has(book.id) ? '1.5px solid transparent' : '1.5px solid #d4cbb8',
+                      background: votedIds.has(book.id) ? '#8B2020' : 'transparent',
+                      cursor: 'pointer',
+                      minWidth: '52px',
+                    }}
+                  >
+                    <span style={{
+                      fontSize: '11px',
+                      color: votedIds.has(book.id) ? 'rgba(245,240,232,0.75)' : '#b8a98a',
+                      lineHeight: 1,
+                    }}>▲</span>
+                    <span style={{
+                      fontFamily: "'Playfair Display', Georgia, serif",
+                      fontSize: '20px',
+                      fontWeight: 400,
+                      color: votedIds.has(book.id) ? '#F5F0E8' : '#1a1a1a',
+                      lineHeight: 1,
+                    }}>
+                      {book.votes}
+                    </span>
+                  </button>
                 </div>
               ))}
             </div>
