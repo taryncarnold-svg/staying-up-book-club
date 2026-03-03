@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase'
+import { supabaseAdmin } from '@/lib/supabase-admin'
 import { NextResponse } from 'next/server'
 
 async function fetchCoverFromOpenLibrary(title, author) {
@@ -49,7 +50,7 @@ export async function GET() {
   await Promise.all(needsCovers.map(async (book) => {
     const cover = await fetchCover(book.title, book.author)
     if (cover) {
-      await supabase.from('past_reads').update({ cover_image: cover }).eq('id', book.id)
+      await supabaseAdmin.from('past_reads').update({ cover_image: cover }).eq('id', book.id)
       book.cover_image = cover
     }
   }))
