@@ -17,6 +17,27 @@ async function fetchCoverFromOpenLibrary(title, author) {
   }
 }
 
+async function fetchCoverFromGoogleBooks(title, author) {
+  try {
+    const q = encodeURIComponent(`intitle:${title}${author ? `+inauthor:${author}` : ''}`)
+    const res = await fetch(
+      `https://www.googleapis.com/books/v1/volumes?q=${q}&maxResults=1`,
+      { signal: AbortSignal.timeout(6000) }
+    )
+    const data = await res.json()
+    const thumbnail = data.items?.[0]?.volumeInfo?.imageLinks?.thumbnail
+    if (!thumbnail) return null
+    return thumbnail.replace('http://', 'https://').replace('zoom=1', 'zoom=2')
+  } catch {
+    return null
+  }
+}
+
+async function fetchCover(title, author) {
+  return (await fetchCoverFromOpenLibrary(title, author))
+      || (await fetchCoverFromGoogleBooks(title, author))
+}
+
 export async function GET() {
   const { data, error } = await supabase
     .from('past_reads')
@@ -24,10 +45,9 @@ export async function GET() {
     .order('month', { ascending: false })
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  // For any row missing a cover, fetch from Open Library and save back
   const needsCovers = data.filter(b => !b.cover_image && b.title)
   await Promise.all(needsCovers.map(async (book) => {
-    const cover = await fetchCoverFromOpenLibrary(book.title, book.author)
+    const cover = await fetchCover(book.title, book.author)
     if (cover) {
       await supabase.from('past_reads').update({ cover_image: cover }).eq('id', book.id)
       book.cover_image = cover
