@@ -15,8 +15,6 @@ export default function Home() {
   const [form, setForm] = useState({ title: '', author: '', note: '', submitted_by: '', book_url: '' })
   const [pastReads, setPastReads] = useState([])
   const [pastLoading, setPastLoading] = useState(false)
-  const [countdown, setCountdown] = useState(null)
-
   useEffect(() => {
     let token = localStorage.getItem('voter_token')
     if (!token) {
@@ -33,22 +31,6 @@ export default function Home() {
     if (sort === 'past') fetchPastReads()
     else fetchBooks()
   }, [sort])
-
-  useEffect(() => {
-    const deadline = new Date('2026-03-09T08:00:00Z') // end of day March 8 PST (UTC-8)
-    function tick() {
-      const diff = deadline - Date.now()
-      if (diff <= 0) { setCountdown('closed'); return }
-      const days = Math.floor(diff / 86400000)
-      const hours = Math.floor((diff % 86400000) / 3600000)
-      const mins = Math.floor((diff % 3600000) / 60000)
-      const secs = Math.floor((diff % 60000) / 1000)
-      setCountdown({ days, hours, mins, secs })
-    }
-    tick()
-    const id = setInterval(tick, 1000)
-    return () => clearInterval(id)
-  }, [])
 
   async function fetchBooks() {
     setLoading(true)
@@ -153,15 +135,7 @@ export default function Home() {
         .submit-cta:active:not(:disabled) { transform: scale(0.97); }
         .cancel-btn:hover { background: rgba(0,0,0,0.07) !important; }
 
-        .countdown-banner { animation: fadeInBanner 0.5s ease; }
-        @keyframes fadeInBanner {
-          from { opacity: 0; transform: translateY(-6px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-        .countdown-unit { display: flex; flex-direction: column; align-items: center; min-width: 42px; }
-        .countdown-num { font-variant-numeric: tabular-nums; }
         @media (max-width: 600px) {
-          .countdown-banner-inner { flex-direction: column; gap: 10px !important; text-align: center; }
           .march-pick-inner { flex-direction: column !important; }
           .march-pick-cover { width: 80px !important; height: 112px !important; }
         }
@@ -217,112 +191,69 @@ export default function Home() {
           </p>
         </header>
 
-        {/* Countdown Banner / March Pick */}
-        {countdown && (() => {
-          if (countdown !== 'closed') {
-            // --- Live countdown ---
-            return (
-              <div className="countdown-banner" style={{ maxWidth: '680px', margin: '0 auto 32px', padding: '0 20px' }}>
-                <div style={{ background: '#EDE8DD', border: '1.5px solid #c8bfaa', borderRadius: '14px', padding: '18px 24px' }}>
-                  <div className="countdown-banner-inner" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
-                    <div>
-                      <p style={{ fontFamily: SYS, fontSize: '17px', fontWeight: 700, color: '#1a1a1a', lineHeight: 1.3, marginBottom: '4px' }}>
-                        📚 march pick deadline
-                      </p>
-                      <p style={{ fontSize: '13px', color: '#8B7355', fontFamily: SYS, lineHeight: 1.4 }}>
-                        Top ranked book by end of day <strong style={{ color: '#8B2020' }}>March 8th</strong> becomes our March pick!
-                      </p>
-                    </div>
-                    <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
-                      {[['days', countdown.days], ['hrs', countdown.hours], ['min', countdown.mins], ['sec', countdown.secs]].map(([label, val]) => (
-                        <div key={label} className="countdown-unit" style={{ background: '#F5F0E8', border: '1px solid #c8bfaa', borderRadius: '8px', padding: '8px 10px' }}>
-                          <span className="countdown-num" style={{ fontFamily: SYS, fontSize: '22px', fontWeight: 700, color: '#8B2020', lineHeight: 1 }}>
-                            {String(val).padStart(2, '0')}
-                          </span>
-                          <span style={{ fontSize: '9px', letterSpacing: '1.5px', textTransform: 'uppercase', color: '#8B7355', marginTop: '3px', fontFamily: SYS }}>
-                            {label}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )
-          }
+        {/* May Pick — hardcoded */}
+        <div style={{ maxWidth: '680px', margin: '0 auto 32px', padding: '0 20px' }}>
+          {/* Announcement banner */}
+          <div style={{ background: '#EDE8DD', border: '1.5px solid #c8bfaa', borderRadius: '14px', padding: '14px 20px', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ fontSize: '20px' }}>🎉</span>
+            <div>
+              <span style={{ fontFamily: SYS, fontSize: '14px', fontWeight: 700, color: '#1a1a1a' }}>may pick is in!</span>
+              <span style={{ fontFamily: SYS, fontSize: '13px', color: '#8B7355', marginLeft: '8px' }}>
+                book club live date announced soon on <a href="https://www.patreon.com/c/StayingUp" target="_blank" rel="noopener noreferrer" style={{ color: '#8B2020', textDecoration: 'none', fontWeight: 600 }}>Patreon</a>
+                {' · '}
+                <a href="https://rallly.co/invite/0nSKDVq4LmlG" target="_blank" rel="noopener noreferrer" style={{ color: '#8B2020', textDecoration: 'none', fontWeight: 600 }}>vote on a time ↗</a>
+              </span>
+            </div>
+          </div>
 
-          // --- Deadline passed: find march pick ---
-          const pick = books.length > 0
-            ? books.reduce((best, b) => {
-                if (b.votes > best.votes) return b
-                if (b.votes === best.votes && new Date(b.created_at) < new Date(best.created_at)) return b
-                return best
-              })
-            : null
-
-          if (!pick) return null
-
-          return (
-            <div style={{ maxWidth: '680px', margin: '0 auto 32px', padding: '0 20px' }}>
-              {/* Celebration banner */}
-              <div style={{ background: '#EDE8DD', border: '1.5px solid #c8bfaa', borderRadius: '14px', padding: '14px 20px', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span style={{ fontSize: '20px' }}>🎉</span>
-                <div>
-                  <span style={{ fontFamily: SYS, fontSize: '14px', fontWeight: 700, color: '#1a1a1a' }}>voting is closed — march pick is in!</span>
-                  <span style={{ fontFamily: SYS, fontSize: '13px', color: '#8B7355', marginLeft: '8px' }}>book club live date announced soon</span>
-                </div>
-              </div>
-
-              {/* Featured march pick card */}
-              <div style={{ background: '#fff', border: '2px solid #8B2020', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 20px rgba(139,32,32,0.08)' }}>
-                <div style={{ marginBottom: '12px' }}>
-                  <span style={{
-                    display: 'inline-block',
-                    background: '#8B2020',
-                    color: '#fff',
-                    fontFamily: SYS,
-                    fontSize: '10px',
-                    fontWeight: 700,
-                    letterSpacing: '2px',
-                    textTransform: 'uppercase',
-                    padding: '4px 10px',
-                    borderRadius: '6px',
-                  }}>
-                    📖 March Pick
-                  </span>
-                </div>
-                <div className="march-pick-inner" style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
-                  {pick.cover_image && (
-                    <a
-                      href={pick.book_url || undefined}
-                      target={pick.book_url ? '_blank' : undefined}
-                      rel="noopener noreferrer"
-                      className="march-pick-cover"
-                      style={{ flexShrink: 0, display: 'block', width: '96px', height: '134px', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 4px 14px rgba(0,0,0,0.15)', cursor: pick.book_url ? 'pointer' : 'default' }}
-                    >
-                      <img src={pick.cover_image} alt={pick.title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-                    </a>
-                  )}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    {pick.book_url ? (
-                      <a href={pick.book_url} target="_blank" rel="noopener noreferrer" style={{ fontFamily: SYS, fontSize: '20px', fontWeight: 700, color: '#1d1d1f', lineHeight: 1.2, textDecoration: 'none', display: 'block', marginBottom: '4px' }}>
-                        {pick.title}
-                      </a>
-                    ) : (
-                      <div style={{ fontFamily: SYS, fontSize: '20px', fontWeight: 700, color: '#1d1d1f', lineHeight: 1.2, marginBottom: '4px' }}>{pick.title}</div>
-                    )}
-                    {pick.author && <div style={{ fontFamily: SYS, fontSize: '14px', color: '#6e6e73', marginBottom: '10px' }}>{pick.author}</div>}
-                    {pick.note && <div style={{ fontFamily: SYS, fontSize: '13px', color: '#6e6e73', fontStyle: 'italic', lineHeight: 1.5, marginBottom: '10px' }}>"{pick.note}"</div>}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <span style={{ fontFamily: SYS, fontSize: '13px', fontWeight: 700, color: '#8B2020' }}>{pick.votes} votes</span>
-                      {pick.submitted_by && <span style={{ fontFamily: SYS, fontSize: '12px', color: '#aeaeb2' }}>· suggested by {pick.submitted_by}</span>}
-                    </div>
-                  </div>
+          <div style={{ background: '#fff', border: '2px solid #8B2020', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 20px rgba(139,32,32,0.08)' }}>
+            <div style={{ marginBottom: '12px' }}>
+              <span style={{
+                display: 'inline-block',
+                background: '#8B2020',
+                color: '#fff',
+                fontFamily: SYS,
+                fontSize: '10px',
+                fontWeight: 700,
+                letterSpacing: '2px',
+                textTransform: 'uppercase',
+                padding: '4px 10px',
+                borderRadius: '6px',
+              }}>
+                📖 May Pick
+              </span>
+            </div>
+            <div className="march-pick-inner" style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
+              <a
+                href="https://www.goodreads.com/book/show/32620332-the-seven-husbands-of-evelyn-hugo"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="march-pick-cover"
+                style={{ flexShrink: 0, display: 'block', width: '96px', height: '134px', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 4px 14px rgba(0,0,0,0.15)' }}
+              >
+                <img
+                  src="https://m.media-amazon.com/images/S/compressed.photo.goodreads.com/books/1664458703i/32620332.jpg"
+                  alt="The Seven Husbands of Evelyn Hugo"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                />
+              </a>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <a
+                  href="https://www.goodreads.com/book/show/32620332-the-seven-husbands-of-evelyn-hugo"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ fontFamily: SYS, fontSize: '20px', fontWeight: 700, color: '#1d1d1f', lineHeight: 1.2, textDecoration: 'none', display: 'block', marginBottom: '4px' }}
+                >
+                  The Seven Husbands of Evelyn Hugo
+                </a>
+                <div style={{ fontFamily: SYS, fontSize: '14px', color: '#6e6e73', marginBottom: '10px' }}>Taylor Jenkins Reid</div>
+                <div style={{ fontFamily: SYS, fontSize: '13px', color: '#6e6e73', fontStyle: 'italic', lineHeight: 1.5 }}>
+                  "A dazzling novel about Old Hollywood glamour, ambition, and the price of keeping secrets."
                 </div>
               </div>
             </div>
-          )
-        })()}
+          </div>
+        </div>
 
         {/* Main */}
         <main style={{ maxWidth: '680px', margin: '0 auto', padding: '0 20px 80px' }}>
@@ -590,30 +521,15 @@ export default function Home() {
               </div>
             </div>
           ) : (() => {
-            const deadline = new Date('2026-03-09T08:00:00Z')
-            const closed = countdown === 'closed'
-            const marchPick = closed && books.length > 0
-              ? books.reduce((best, b) => {
-                  if (b.votes > best.votes) return b
-                  if (b.votes === best.votes && new Date(b.created_at) < new Date(best.created_at)) return b
-                  return best
-                })
-              : null
-            const visibleBooks = marchPick ? books.filter(b => b.id !== marchPick.id) : books
-            const pickMonth = deadline.toLocaleString('en-US', { month: 'long', timeZone: 'America/Los_Angeles' })
-            const nextMonthDate = new Date(deadline)
-            nextMonthDate.setMonth(nextMonthDate.getMonth() + 1)
-            const nextMonth = nextMonthDate.toLocaleString('en-US', { month: 'long', timeZone: 'America/Los_Angeles' })
-            const votingMonth = closed ? nextMonth : pickMonth
-            return (
+              return (
             <>
             <div style={{ marginBottom: '16px' }}>
               <h2 style={{ fontFamily: SYS, fontSize: '20px', fontWeight: 700, color: '#1d1d1f', margin: 0 }}>
-                What will our {votingMonth} read be? 📚
+                What will our May read be? 📚
               </h2>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {visibleBooks.map((book, i) => {
+              {books.map((book, i) => {
                 const voted = votedIds.has(book.id)
                 return (
                   <div
