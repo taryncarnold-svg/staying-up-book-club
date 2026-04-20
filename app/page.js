@@ -525,7 +525,7 @@ export default function Home() {
             <>
             <div style={{ marginBottom: '16px' }}>
               <h2 style={{ fontFamily: SYS, fontSize: '20px', fontWeight: 700, color: '#1d1d1f', margin: 0 }}>
-                What will our May read be? 📚
+                What will our June read be? 📚
               </h2>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
