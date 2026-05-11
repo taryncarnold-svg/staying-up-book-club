@@ -1,13 +1,25 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 
 const SYS = 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
 
 export default function Home() {
   const [books, setBooks] = useState([])
-  const [votedIds, setVotedIds] = useState(new Set())
-  const [voterToken, setVoterToken] = useState(null)
+  const [voterToken] = useState(() => {
+    if (typeof window === 'undefined') return null
+    let token = window.localStorage.getItem('voter_token')
+    if (!token) {
+      token = crypto.randomUUID()
+      window.localStorage.setItem('voter_token', token)
+    }
+    return token
+  })
+  const [votedIds, setVotedIds] = useState(() => {
+    if (typeof window === 'undefined') return new Set()
+    const voted = JSON.parse(window.localStorage.getItem('voted_ids') || '[]')
+    return new Set(voted)
+  })
   const [sort, setSort] = useState('votes')
   const [showForm, setShowForm] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -15,38 +27,30 @@ export default function Home() {
   const [form, setForm] = useState({ title: '', author: '', note: '', submitted_by: '', book_url: '' })
   const [pastReads, setPastReads] = useState([])
   const [pastLoading, setPastLoading] = useState(false)
-  useEffect(() => {
-    let token = localStorage.getItem('voter_token')
-    if (!token) {
-      token = crypto.randomUUID()
-      localStorage.setItem('voter_token', token)
-    }
-    setVoterToken(token)
 
-    const voted = JSON.parse(localStorage.getItem('voted_ids') || '[]')
-    setVotedIds(new Set(voted))
-  }, [])
-
-  useEffect(() => {
-    if (sort === 'past') fetchPastReads()
-    else fetchBooks()
-  }, [sort])
-
-  async function fetchBooks() {
+  const fetchBooks = useCallback(async () => {
     setLoading(true)
     const res = await fetch(`/api/books?sort=${sort}`)
     const data = await res.json()
     setBooks(data)
     setLoading(false)
-  }
+  }, [sort])
 
-  async function fetchPastReads() {
+  const fetchPastReads = useCallback(async () => {
     setPastLoading(true)
     const res = await fetch('/api/past-reads')
     const data = await res.json()
     setPastReads(data)
     setPastLoading(false)
-  }
+  }, [])
+
+  useEffect(() => {
+    if (sort === 'past') {
+      void fetchPastReads()
+    } else {
+      void fetchBooks()
+    }
+  }, [sort, fetchBooks, fetchPastReads])
 
   function formatMonth(str) {
     if (!str) return ''
@@ -197,11 +201,9 @@ export default function Home() {
           <div style={{ background: '#EDE8DD', border: '1.5px solid #c8bfaa', borderRadius: '14px', padding: '14px 20px', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '10px' }}>
             <span style={{ fontSize: '20px' }}>🎉</span>
             <div>
-              <span style={{ fontFamily: SYS, fontSize: '14px', fontWeight: 700, color: '#1a1a1a' }}>may pick is in!</span>
+              <span style={{ fontFamily: SYS, fontSize: '14px', fontWeight: 700, color: '#1a1a1a' }}>we’re meeting may 17th at 11am pst!</span>
               <span style={{ fontFamily: SYS, fontSize: '13px', color: '#8B7355', marginLeft: '8px' }}>
-                book club live date announced soon on <a href="https://www.patreon.com/c/StayingUp" target="_blank" rel="noopener noreferrer" style={{ color: '#8B2020', textDecoration: 'none', fontWeight: 600 }}>Patreon</a>
-                {' · '}
-                <a href="https://rallly.co/invite/0nSKDVq4LmlG" target="_blank" rel="noopener noreferrer" style={{ color: '#8B2020', textDecoration: 'none', fontWeight: 600 }}>vote on a time ↗</a>
+                details on <a href="https://www.patreon.com/c/StayingUp" target="_blank" rel="noopener noreferrer" style={{ color: '#8B2020', textDecoration: 'none', fontWeight: 600 }}>Patreon</a>
               </span>
             </div>
           </div>
@@ -248,7 +250,7 @@ export default function Home() {
                 </a>
                 <div style={{ fontFamily: SYS, fontSize: '14px', color: '#6e6e73', marginBottom: '10px' }}>Taylor Jenkins Reid</div>
                 <div style={{ fontFamily: SYS, fontSize: '13px', color: '#6e6e73', fontStyle: 'italic', lineHeight: 1.5 }}>
-                  "A dazzling novel about Old Hollywood glamour, ambition, and the price of keeping secrets."
+                  &quot;A dazzling novel about Old Hollywood glamour, ambition, and the price of keeping secrets.&quot;
                 </div>
               </div>
             </div>
@@ -378,7 +380,7 @@ export default function Home() {
                   />
                 </div>
                 <div style={{ gridColumn: '1 / -1' }}>
-                  <label style={labelStyle}>Why we'd love it</label>
+                  <label style={labelStyle}>Why we&apos;d love it</label>
                   <textarea
                     style={{ ...inputStyle, resize: 'none', height: '80px' }}
                     value={form.note}
