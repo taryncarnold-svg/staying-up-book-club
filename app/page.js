@@ -27,6 +27,11 @@ export default function Home() {
   const [form, setForm] = useState({ title: '', author: '', note: '', submitted_by: '', book_url: '' })
   const [pastReads, setPastReads] = useState([])
   const [pastLoading, setPastLoading] = useState(false)
+  const [trendingBooks, setTrendingBooks] = useState([])
+  const [trendingLoading, setTrendingLoading] = useState(true)
+  const [trendingStale, setTrendingStale] = useState(false)
+  const [addingTrending, setAddingTrending] = useState(null)
+  const [addedTrending, setAddedTrending] = useState(new Set())
 
   const fetchBooks = useCallback(async () => {
     setLoading(true)
@@ -51,6 +56,49 @@ export default function Home() {
       void fetchBooks()
     }
   }, [sort, fetchBooks, fetchPastReads])
+
+  useEffect(() => {
+    async function loadTrending() {
+      setTrendingLoading(true)
+      try {
+        const res = await fetch('/api/trending')
+        const data = await res.json()
+        setTrendingBooks(data.books || [])
+        setTrendingStale(!!data.stale)
+      } catch {
+        setTrendingBooks([])
+      } finally {
+        setTrendingLoading(false)
+      }
+    }
+    void loadTrending()
+  }, [])
+
+  function isBookOnList(title) {
+    const normalized = title.trim().toLowerCase()
+    return books.some(b => b.title.trim().toLowerCase() === normalized)
+  }
+
+  async function handleTrendingAdd(book) {
+    if (isBookOnList(book.title) || addedTrending.has(book.title)) return
+    setAddingTrending(book.title)
+    try {
+      const res = await fetch('/api/trending/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: book.title, author: book.author }),
+      })
+      if (res.status === 409) {
+        setAddedTrending(prev => new Set([...prev, book.title]))
+        return
+      }
+      if (!res.ok) return
+      setAddedTrending(prev => new Set([...prev, book.title]))
+      if (sort !== 'past') void fetchBooks()
+    } finally {
+      setAddingTrending(null)
+    }
+  }
 
   function formatMonth(str) {
     if (!str) return ''
@@ -150,6 +198,18 @@ export default function Home() {
           to   { opacity: 1; transform: translateY(0); }
         }
 
+        .home-layout { display: flex; gap: 24px; align-items: flex-start; max-width: 1040px; margin: 0 auto; padding: 0 20px; }
+        .home-main { flex: 1; min-width: 0; max-width: 680px; }
+        .trending-sidebar {
+          width: 300px; flex-shrink: 0; position: sticky; top: 24px;
+          max-height: calc(100vh - 48px); overflow-y: auto;
+        }
+        .trending-add-btn:hover:not(:disabled) { background: #7a1b1b !important; }
+        @media (max-width: 900px) {
+          .home-layout { flex-direction: column; padding: 0 20px; }
+          .home-main { max-width: none; width: 100%; }
+          .trending-sidebar { width: 100%; position: static; max-height: none; order: 2; }
+        }
         @media (max-width: 600px) {
           .card-cover { width: 52px !important; height: 72px !important; }
           .card-title { font-size: 15px !important; }
@@ -195,8 +255,10 @@ export default function Home() {
           </p>
         </header>
 
+        <div className="home-layout">
+        <div className="home-main">
         {/* June Pick — hardcoded */}
-        <div style={{ maxWidth: '680px', margin: '0 auto 32px', padding: '0 20px' }}>
+        <div style={{ marginBottom: '32px' }}>
           {/* Announcement banner */}
           <div style={{ background: '#EDE8DD', border: '1.5px solid #c8bfaa', borderRadius: '14px', padding: '14px 20px', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '10px' }}>
             <span style={{ fontSize: '20px' }}>🎉</span>
@@ -258,7 +320,7 @@ export default function Home() {
         </div>
 
         {/* Main */}
-        <main style={{ maxWidth: '680px', margin: '0 auto', padding: '0 20px 80px' }}>
+        <main style={{ padding: '0 0 80px' }}>
 
           {/* Controls */}
           <div className="controls-row" style={{
@@ -681,6 +743,103 @@ export default function Home() {
           })()
           )}
         </main>
+        </div>
+
+        <aside className="trending-sidebar">
+          <div style={{
+            background: '#fff',
+            border: '1px solid rgba(0,0,0,0.08)',
+            borderRadius: '16px',
+            padding: '20px',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+          }}>
+            <h2 style={{
+              fontFamily: SYS,
+              fontSize: '15px',
+              fontWeight: 700,
+              color: '#1d1d1f',
+              lineHeight: 1.4,
+              marginBottom: '8px',
+            }}>
+              Not in love with the submissions? Here&apos;s what&apos;s trending in other book clubs.
+            </h2>
+            <p style={{ fontSize: '12px', color: '#aeaeb2', marginBottom: trendingStale ? '8px' : '16px' }}>
+              <a
+                href="https://bookclubs.com/best-book-club-books/this-month"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: '#8B2020', textDecoration: 'none', fontWeight: 600 }}
+              >
+                via Bookclubs ↗
+              </a>
+            </p>
+            {trendingStale && (
+              <p style={{ fontSize: '11px', color: '#8B7355', marginBottom: '12px', lineHeight: 1.4 }}>
+                Couldn&apos;t refresh — showing last available picks.
+              </p>
+            )}
+            {trendingLoading ? (
+              <div style={{ fontSize: '13px', color: '#aeaeb2', padding: '12px 0' }}>Loading trending…</div>
+            ) : trendingBooks.length === 0 ? (
+              <div style={{ fontSize: '13px', color: '#aeaeb2', padding: '12px 0' }}>Trending picks unavailable right now.</div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                {trendingBooks.map(book => {
+                  const onList = isBookOnList(book.title) || addedTrending.has(book.title)
+                  const isAdding = addingTrending === book.title
+                  return (
+                    <div
+                      key={book.rank}
+                      style={{
+                        paddingBottom: '14px',
+                        borderBottom: book.rank < trendingBooks.length ? '1px solid rgba(0,0,0,0.06)' : 'none',
+                      }}
+                    >
+                      <div style={{ fontSize: '11px', fontWeight: 600, color: '#aeaeb2', marginBottom: '4px' }}>
+                        #{book.rank}
+                      </div>
+                      <div style={{ fontSize: '14px', fontWeight: 600, color: '#1d1d1f', lineHeight: 1.3, marginBottom: '2px' }}>
+                        {book.title}
+                      </div>
+                      {book.author && (
+                        <div style={{ fontSize: '12px', color: '#6e6e73', marginBottom: book.description ? '6px' : '8px' }}>
+                          {book.author}
+                        </div>
+                      )}
+                      {book.description && (
+                        <div style={{ fontSize: '12px', color: '#6e6e73', lineHeight: 1.45, marginBottom: '10px' }}>
+                          {book.description}
+                        </div>
+                      )}
+                      <button
+                        type="button"
+                        className="trending-add-btn"
+                        disabled={onList || isAdding}
+                        onClick={() => handleTrendingAdd(book)}
+                        style={{
+                          width: '100%',
+                          padding: '8px 12px',
+                          fontSize: '12px',
+                          fontWeight: 600,
+                          fontFamily: SYS,
+                          background: onList ? 'rgba(0,0,0,0.05)' : '#8B2020',
+                          color: onList ? '#6e6e73' : '#fff',
+                          border: 'none',
+                          borderRadius: '8px',
+                          cursor: onList || isAdding ? 'not-allowed' : 'pointer',
+                          transition: 'background 0.15s ease',
+                        }}
+                      >
+                        {isAdding ? 'Adding…' : onList ? 'Already on the list' : 'Add to our list'}
+                      </button>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        </aside>
+        </div>
 
         {/* Footer */}
         <footer style={{ textAlign: 'center', padding: '32px 24px', fontSize: '12px', color: '#aeaeb2' }}>
