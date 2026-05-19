@@ -7,7 +7,8 @@ export async function GET() {
     let cache = await getTrendingCache()
     let stale = false
 
-    if (!cache?.books?.length || isCacheStale(cache.updated_at)) {
+    const needsCovers = cache?.books?.some(b => !b.cover_image)
+    if (!cache?.books?.length || isCacheStale(cache.updated_at) || needsCovers) {
       try {
         const books = await scrapeBookclubsTrending(5)
         cache = await setTrendingCache(books)

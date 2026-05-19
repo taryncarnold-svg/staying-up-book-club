@@ -158,6 +158,241 @@ export default function Home() {
     fontFamily: SYS,
   }
 
+  function renderVoteButton(book, voted, compact = false) {
+    return (
+      <button
+        className={`vote-btn${voted ? ' voted' : ''}`}
+        onClick={() => handleVote(book.id)}
+        style={{
+          flexShrink: 0,
+          display: 'flex',
+          flexDirection: compact ? 'row' : 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: compact ? '6px' : '2px',
+          padding: compact ? '8px' : '12px 16px',
+          borderRadius: compact ? '8px' : '12px',
+          border: 'none',
+          background: voted ? '#8B2020' : 'rgba(0,0,0,0.05)',
+          cursor: 'pointer',
+          minWidth: compact ? 0 : '62px',
+          width: compact ? '100%' : undefined,
+          minHeight: compact ? '44px' : '60px',
+        }}
+      >
+        <span className="vote-icon" style={{ fontSize: compact ? '11px' : '13px', color: voted ? 'rgba(255,255,255,0.85)' : '#6e6e73', lineHeight: 1 }}>
+          {voted ? '✓' : '▲'}
+        </span>
+        <span className="vote-count" style={{ fontSize: compact ? '15px' : '19px', fontWeight: 700, color: voted ? '#fff' : '#1d1d1f', lineHeight: 1.1 }}>
+          {book.votes}
+        </span>
+        {!compact && (
+          <span className="vote-label" style={{ fontSize: '11px', fontWeight: 600, color: voted ? 'rgba(255,255,255,0.75)' : '#aeaeb2', lineHeight: 1, letterSpacing: '0.2px' }}>
+            {voted ? 'Voted' : 'Vote'}
+          </span>
+        )}
+      </button>
+    )
+  }
+
+  function renderBookCover(book, size = 'full') {
+    const isCompact = size === 'compact'
+    return (
+      <a
+        href={book.book_url || undefined}
+        target={book.book_url ? '_blank' : undefined}
+        rel={book.book_url ? 'noopener noreferrer' : undefined}
+        className={isCompact ? undefined : 'card-cover'}
+        style={{
+          flexShrink: 0,
+          display: 'block',
+          width: isCompact ? '100%' : '60px',
+          height: isCompact ? '88px' : '84px',
+          borderRadius: isCompact ? '6px' : '7px',
+          overflow: 'hidden',
+          background: '#e5e5ea',
+          boxShadow: isCompact ? '0 1px 4px rgba(0,0,0,0.1)' : '0 2px 8px rgba(0,0,0,0.12)',
+          cursor: book.book_url ? 'pointer' : 'default',
+          marginBottom: isCompact ? '8px' : 0,
+        }}
+      >
+        {book.cover_image ? (
+          <img
+            src={book.cover_image}
+            alt={book.title}
+            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+          />
+        ) : (
+          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ fontSize: isCompact ? '18px' : '22px', color: '#aeaeb2' }}>
+              {book.title.charAt(0).toUpperCase()}
+            </span>
+          </div>
+        )}
+      </a>
+    )
+  }
+
+  function renderFullBookCard(book, i) {
+    const voted = votedIds.has(book.id)
+    return (
+      <div
+        key={book.id}
+        className="book-card"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '16px',
+          background: '#fff',
+          borderRadius: '14px',
+          border: '1px solid rgba(0,0,0,0.07)',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+          padding: '16px 20px',
+        }}
+      >
+        {renderBookCover(book, 'full')}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: '11px', fontWeight: 500, color: '#aeaeb2', marginBottom: '4px' }}>
+            #{i + 1}
+          </div>
+          {book.book_url ? (
+            <a
+              href={book.book_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="card-title"
+              style={{
+                fontSize: '16px',
+                fontWeight: 600,
+                color: '#1d1d1f',
+                lineHeight: 1.3,
+                textDecoration: 'none',
+                display: 'block',
+                marginBottom: '3px',
+              }}
+            >
+              {book.title}
+            </a>
+          ) : (
+            <div
+              className="card-title"
+              style={{ fontSize: '16px', fontWeight: 600, color: '#1d1d1f', lineHeight: 1.3, marginBottom: '3px' }}
+            >
+              {book.title}
+            </div>
+          )}
+          {book.author && (
+            <div style={{ fontSize: '13px', color: '#6e6e73', marginBottom: book.note ? '6px' : 0 }}>
+              {book.author}
+            </div>
+          )}
+          {book.note && (() => {
+            const isAI = book.note.startsWith('__ai__')
+            const text = isAI ? book.note.slice(6) : book.note
+            return (
+              <div style={{
+                fontSize: '13px',
+                color: '#6e6e73',
+                fontStyle: 'italic',
+                lineHeight: 1.45,
+                marginBottom: book.submitted_by ? '5px' : 0,
+              }}>
+                {isAI
+                  ? <><span style={{ fontStyle: 'normal', fontWeight: 600, color: '#8B7355' }}>The internet says</span> {text}</>
+                  : `"${text}"`
+                }
+              </div>
+            )
+          })()}
+          {book.submitted_by && (
+            <div style={{ fontSize: '11px', color: '#aeaeb2', fontWeight: 500 }}>
+              via {book.submitted_by}
+            </div>
+          )}
+        </div>
+        {renderVoteButton(book, voted)}
+      </div>
+    )
+  }
+
+  function renderCompactBookTile(book, i) {
+    const voted = votedIds.has(book.id)
+    return (
+      <div
+        key={book.id}
+        className="book-tile book-card"
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          background: '#fff',
+          borderRadius: '12px',
+          border: '1px solid rgba(0,0,0,0.07)',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+          padding: '10px',
+        }}
+      >
+        <div style={{ fontSize: '10px', fontWeight: 600, color: '#aeaeb2', marginBottom: '6px' }}>
+          #{i + 1}
+        </div>
+        {renderBookCover(book, 'compact')}
+        {book.book_url ? (
+          <a
+            href={book.book_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            title={book.title}
+            style={{
+              fontSize: '13px',
+              fontWeight: 600,
+              color: '#1d1d1f',
+              lineHeight: 1.25,
+              textDecoration: 'none',
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+              marginBottom: '4px',
+              minHeight: '32px',
+            }}
+          >
+            {book.title}
+          </a>
+        ) : (
+          <div
+            title={book.title}
+            style={{
+              fontSize: '13px',
+              fontWeight: 600,
+              color: '#1d1d1f',
+              lineHeight: 1.25,
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+              marginBottom: '4px',
+              minHeight: '32px',
+            }}
+          >
+            {book.title}
+          </div>
+        )}
+        {book.author && (
+          <div style={{
+            fontSize: '11px',
+            color: '#6e6e73',
+            marginBottom: '8px',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}>
+            {book.author}
+          </div>
+        )}
+        {renderVoteButton(book, voted, true)}
+      </div>
+    )
+  }
+
   return (
     <>
       <style>{`
@@ -205,12 +440,22 @@ export default function Home() {
           max-height: calc(100vh - 48px); overflow-y: auto;
         }
         .trending-add-btn:hover:not(:disabled) { background: #7a1b1b !important; }
+        .books-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 10px;
+        }
+        .book-tile { transition: box-shadow 0.2s ease, transform 0.2s ease; }
+        .book-tile:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.08) !important; }
+        .book-tile .vote-btn { min-width: 0 !important; width: 100%; min-height: 44px !important; padding: 8px !important; flex-direction: row !important; gap: 6px !important; }
+        .book-tile .vote-count { font-size: 15px !important; }
         @media (max-width: 900px) {
           .home-layout { flex-direction: column; padding: 0 20px; }
           .home-main { max-width: none; width: 100%; }
           .trending-sidebar { width: 100%; position: static; max-height: none; order: 2; }
         }
         @media (max-width: 600px) {
+          .books-grid { grid-template-columns: repeat(2, 1fr); }
           .card-cover { width: 52px !important; height: 72px !important; }
           .card-title { font-size: 15px !important; }
           .vote-btn { padding: 10px 13px !important; min-width: 56px !important; }
@@ -593,151 +838,26 @@ export default function Home() {
               </h2>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {books.map((book, i) => {
-                const voted = votedIds.has(book.id)
-                return (
-                  <div
-                    key={book.id}
-                    className="book-card"
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '16px',
-                      background: '#fff',
-                      borderRadius: '14px',
-                      border: '1px solid rgba(0,0,0,0.07)',
-                      boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
-                      padding: '16px 20px',
-                    }}
-                  >
-                    {/* Cover */}
-                    <a
-                      href={book.book_url || undefined}
-                      target={book.book_url ? '_blank' : undefined}
-                      rel={book.book_url ? 'noopener noreferrer' : undefined}
-                      className="card-cover"
-                      style={{
-                        flexShrink: 0,
-                        display: 'block',
-                        width: '60px',
-                        height: '84px',
-                        borderRadius: '7px',
-                        overflow: 'hidden',
-                        background: '#e5e5ea',
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
-                        cursor: book.book_url ? 'pointer' : 'default',
-                      }}
-                    >
-                      {book.cover_image ? (
-                        <img
-                          src={book.cover_image}
-                          alt={book.title}
-                          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-                        />
-                      ) : (
-                        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <span style={{ fontSize: '22px', color: '#aeaeb2' }}>
-                            {book.title.charAt(0).toUpperCase()}
-                          </span>
-                        </div>
-                      )}
-                    </a>
-
-                    {/* Content */}
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: '11px', fontWeight: 500, color: '#aeaeb2', marginBottom: '4px' }}>
-                        #{i + 1}
-                      </div>
-                      {book.book_url ? (
-                        <a
-                          href={book.book_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="card-title"
-                          style={{
-                            fontSize: '16px',
-                            fontWeight: 600,
-                            color: '#1d1d1f',
-                            lineHeight: 1.3,
-                            textDecoration: 'none',
-                            display: 'block',
-                            marginBottom: '3px',
-                          }}
-                        >
-                          {book.title}
-                        </a>
-                      ) : (
-                        <div
-                          className="card-title"
-                          style={{ fontSize: '16px', fontWeight: 600, color: '#1d1d1f', lineHeight: 1.3, marginBottom: '3px' }}
-                        >
-                          {book.title}
-                        </div>
-                      )}
-                      {book.author && (
-                        <div style={{ fontSize: '13px', color: '#6e6e73', marginBottom: book.note ? '6px' : 0 }}>
-                          {book.author}
-                        </div>
-                      )}
-                      {book.note && (() => {
-                        const isAI = book.note.startsWith('__ai__')
-                        const text = isAI ? book.note.slice(6) : book.note
-                        return (
-                          <div style={{
-                            fontSize: '13px',
-                            color: '#6e6e73',
-                            fontStyle: 'italic',
-                            lineHeight: 1.45,
-                            marginBottom: book.submitted_by ? '5px' : 0,
-                          }}>
-                            {isAI
-                              ? <><span style={{ fontStyle: 'normal', fontWeight: 600, color: '#8B7355' }}>The internet says</span> {text}</>
-                              : `"${text}"`
-                            }
-                          </div>
-                        )
-                      })()}
-                      {book.submitted_by && (
-                        <div style={{ fontSize: '11px', color: '#aeaeb2', fontWeight: 500 }}>
-                          via {book.submitted_by}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Vote */}
-                    <button
-                      className={`vote-btn${voted ? ' voted' : ''}`}
-                      onClick={() => handleVote(book.id)}
-                      style={{
-                        flexShrink: 0,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '2px',
-                        padding: '12px 16px',
-                        borderRadius: '12px',
-                        border: 'none',
-                        background: voted ? '#8B2020' : 'rgba(0,0,0,0.05)',
-                        cursor: 'pointer',
-                        minWidth: '62px',
-                        minHeight: '60px',
-                      }}
-                    >
-                      <span className="vote-icon" style={{ fontSize: '13px', color: voted ? 'rgba(255,255,255,0.85)' : '#6e6e73', lineHeight: 1 }}>
-                        {voted ? '✓' : '▲'}
-                      </span>
-                      <span className="vote-count" style={{ fontSize: '19px', fontWeight: 700, color: voted ? '#fff' : '#1d1d1f', lineHeight: 1.1 }}>
-                        {book.votes}
-                      </span>
-                      <span className="vote-label" style={{ fontSize: '11px', fontWeight: 600, color: voted ? 'rgba(255,255,255,0.75)' : '#aeaeb2', lineHeight: 1, letterSpacing: '0.2px' }}>
-                        {voted ? 'Voted' : 'Vote'}
-                      </span>
-                    </button>
-                  </div>
-                )
-              })}
+              {books.slice(0, 3).map((book, i) => renderFullBookCard(book, i))}
             </div>
+            {books.length > 3 && (
+              <>
+                <p style={{
+                  fontFamily: SYS,
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  color: '#aeaeb2',
+                  marginTop: '16px',
+                  marginBottom: '10px',
+                }}>
+                  More nominees
+                </p>
+                <div className="books-grid">
+                  {books.slice(3).map((book, i) => renderCompactBookTile(book, i + 3))}
+                </div>
+              </>
+            )}
+
             </>
             )
           })()
@@ -795,22 +915,59 @@ export default function Home() {
                         borderBottom: book.rank < trendingBooks.length ? '1px solid rgba(0,0,0,0.06)' : 'none',
                       }}
                     >
-                      <div style={{ fontSize: '11px', fontWeight: 600, color: '#aeaeb2', marginBottom: '4px' }}>
-                        #{book.rank}
-                      </div>
-                      <div style={{ fontSize: '14px', fontWeight: 600, color: '#1d1d1f', lineHeight: 1.3, marginBottom: '2px' }}>
-                        {book.title}
-                      </div>
-                      {book.author && (
-                        <div style={{ fontSize: '12px', color: '#6e6e73', marginBottom: book.description ? '6px' : '8px' }}>
-                          {book.author}
+                      <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', marginBottom: '10px' }}>
+                        {book.cover_image ? (
+                          <div style={{
+                            flexShrink: 0,
+                            width: '44px',
+                            height: '64px',
+                            borderRadius: '5px',
+                            overflow: 'hidden',
+                            background: '#e5e5ea',
+                            boxShadow: '0 1px 4px rgba(0,0,0,0.1)',
+                          }}>
+                            <img
+                              src={book.cover_image}
+                              alt={book.title}
+                              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                            />
+                          </div>
+                        ) : (
+                          <div style={{
+                            flexShrink: 0,
+                            width: '44px',
+                            height: '64px',
+                            borderRadius: '5px',
+                            background: '#e5e5ea',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '16px',
+                            color: '#aeaeb2',
+                            fontWeight: 600,
+                          }}>
+                            {book.title.charAt(0)}
+                          </div>
+                        )}
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: '11px', fontWeight: 600, color: '#aeaeb2', marginBottom: '4px' }}>
+                            #{book.rank}
+                          </div>
+                          <div style={{ fontSize: '14px', fontWeight: 600, color: '#1d1d1f', lineHeight: 1.3, marginBottom: '2px' }}>
+                            {book.title}
+                          </div>
+                          {book.author && (
+                            <div style={{ fontSize: '12px', color: '#6e6e73', marginBottom: book.description ? '4px' : 0 }}>
+                              {book.author}
+                            </div>
+                          )}
+                          {book.description && (
+                            <div style={{ fontSize: '11px', color: '#6e6e73', lineHeight: 1.4 }}>
+                              {book.description}
+                            </div>
+                          )}
                         </div>
-                      )}
-                      {book.description && (
-                        <div style={{ fontSize: '12px', color: '#6e6e73', lineHeight: 1.45, marginBottom: '10px' }}>
-                          {book.description}
-                        </div>
-                      )}
+                      </div>
                       <button
                         type="button"
                         className="trending-add-btn"
