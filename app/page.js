@@ -158,39 +158,63 @@ export default function Home() {
     fontFamily: SYS,
   }
 
+  function renderBookNote(book, compact = false) {
+    if (!book.note) return null
+    const isAI = book.note.startsWith('__ai__')
+    const text = isAI ? book.note.slice(6) : book.note
+    return (
+      <div className={compact ? 'book-tile-note' : undefined} style={compact ? undefined : {
+        fontSize: '13px',
+        color: '#6e6e73',
+        fontStyle: 'italic',
+        lineHeight: 1.45,
+        marginBottom: book.submitted_by ? '5px' : 0,
+      }}>
+        {isAI
+          ? <><span style={{ fontStyle: 'normal', fontWeight: 600, color: '#8B7355' }}>The internet says</span> {text}</>
+          : `"${text}"`
+        }
+      </div>
+    )
+  }
+
   function renderVoteButton(book, voted, compact = false) {
     return (
       <button
-        className={`vote-btn${voted ? ' voted' : ''}`}
+        type="button"
+        className={`vote-btn${compact ? ' vote-btn-compact' : ''}${voted ? ' voted' : ''}`}
         onClick={() => handleVote(book.id)}
-        style={{
+        style={compact ? undefined : {
           flexShrink: 0,
           display: 'flex',
-          flexDirection: compact ? 'row' : 'column',
+          flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          gap: compact ? '6px' : '2px',
-          padding: compact ? '8px' : '12px 16px',
-          borderRadius: compact ? '8px' : '12px',
+          gap: '2px',
+          padding: '12px 16px',
+          borderRadius: '12px',
           border: 'none',
           background: voted ? '#8B2020' : 'rgba(0,0,0,0.05)',
           cursor: 'pointer',
-          minWidth: compact ? 0 : '62px',
-          width: compact ? '100%' : undefined,
-          minHeight: compact ? '44px' : '60px',
+          minWidth: '62px',
+          minHeight: '60px',
         }}
       >
-        <span className="vote-icon" style={{ fontSize: compact ? '11px' : '13px', color: voted ? 'rgba(255,255,255,0.85)' : '#6e6e73', lineHeight: 1 }}>
+        <span className="vote-icon" style={{ fontSize: compact ? '10px' : '13px', color: voted ? 'rgba(255,255,255,0.85)' : '#6e6e73', lineHeight: 1 }}>
           {voted ? '✓' : '▲'}
         </span>
-        <span className="vote-count" style={{ fontSize: compact ? '15px' : '19px', fontWeight: 700, color: voted ? '#fff' : '#1d1d1f', lineHeight: 1.1 }}>
+        <span className="vote-count" style={{ fontSize: compact ? '14px' : '19px', fontWeight: 700, color: voted ? '#fff' : '#1d1d1f', lineHeight: 1.1 }}>
           {book.votes}
         </span>
-        {!compact && (
-          <span className="vote-label" style={{ fontSize: '11px', fontWeight: 600, color: voted ? 'rgba(255,255,255,0.75)' : '#aeaeb2', lineHeight: 1, letterSpacing: '0.2px' }}>
-            {voted ? 'Voted' : 'Vote'}
-          </span>
-        )}
+        <span className="vote-label" style={{
+          fontSize: compact ? '10px' : '11px',
+          fontWeight: 600,
+          color: voted ? 'rgba(255,255,255,0.75)' : '#aeaeb2',
+          lineHeight: 1,
+          letterSpacing: '0.2px',
+        }}>
+          {voted ? 'Voted' : 'Vote'}
+        </span>
       </button>
     )
   }
@@ -286,24 +310,7 @@ export default function Home() {
               {book.author}
             </div>
           )}
-          {book.note && (() => {
-            const isAI = book.note.startsWith('__ai__')
-            const text = isAI ? book.note.slice(6) : book.note
-            return (
-              <div style={{
-                fontSize: '13px',
-                color: '#6e6e73',
-                fontStyle: 'italic',
-                lineHeight: 1.45,
-                marginBottom: book.submitted_by ? '5px' : 0,
-              }}>
-                {isAI
-                  ? <><span style={{ fontStyle: 'normal', fontWeight: 600, color: '#8B7355' }}>The internet says</span> {text}</>
-                  : `"${text}"`
-                }
-              </div>
-            )
-          })()}
+          {renderBookNote(book)}
           {book.submitted_by && (
             <div style={{ fontSize: '11px', color: '#aeaeb2', fontWeight: 500 }}>
               via {book.submitted_by}
@@ -322,8 +329,6 @@ export default function Home() {
         key={book.id}
         className="book-tile book-card"
         style={{
-          display: 'flex',
-          flexDirection: 'column',
           background: '#fff',
           borderRadius: '12px',
           border: '1px solid rgba(0,0,0,0.07)',
@@ -331,63 +336,64 @@ export default function Home() {
           padding: '10px',
         }}
       >
-        <div style={{ fontSize: '10px', fontWeight: 600, color: '#aeaeb2', marginBottom: '6px' }}>
-          #{i + 1}
+        <div className="book-tile-body">
+          <div style={{ fontSize: '10px', fontWeight: 600, color: '#aeaeb2', marginBottom: '6px' }}>
+            #{i + 1}
+          </div>
+          {renderBookCover(book, 'compact')}
+          {book.book_url ? (
+            <a
+              href={book.book_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              title={book.title}
+              style={{
+                fontSize: '13px',
+                fontWeight: 600,
+                color: '#1d1d1f',
+                lineHeight: 1.25,
+                textDecoration: 'none',
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+                marginBottom: '2px',
+              }}
+            >
+              {book.title}
+            </a>
+          ) : (
+            <div
+              title={book.title}
+              style={{
+                fontSize: '13px',
+                fontWeight: 600,
+                color: '#1d1d1f',
+                lineHeight: 1.25,
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+                marginBottom: '2px',
+              }}
+            >
+              {book.title}
+            </div>
+          )}
+          {book.author && (
+            <div style={{
+              fontSize: '11px',
+              color: '#6e6e73',
+              marginBottom: book.note ? '0' : '4px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}>
+              {book.author}
+            </div>
+          )}
+          {renderBookNote(book, true)}
         </div>
-        {renderBookCover(book, 'compact')}
-        {book.book_url ? (
-          <a
-            href={book.book_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            title={book.title}
-            style={{
-              fontSize: '13px',
-              fontWeight: 600,
-              color: '#1d1d1f',
-              lineHeight: 1.25,
-              textDecoration: 'none',
-              display: '-webkit-box',
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: 'vertical',
-              overflow: 'hidden',
-              marginBottom: '4px',
-              minHeight: '32px',
-            }}
-          >
-            {book.title}
-          </a>
-        ) : (
-          <div
-            title={book.title}
-            style={{
-              fontSize: '13px',
-              fontWeight: 600,
-              color: '#1d1d1f',
-              lineHeight: 1.25,
-              display: '-webkit-box',
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: 'vertical',
-              overflow: 'hidden',
-              marginBottom: '4px',
-              minHeight: '32px',
-            }}
-          >
-            {book.title}
-          </div>
-        )}
-        {book.author && (
-          <div style={{
-            fontSize: '11px',
-            color: '#6e6e73',
-            marginBottom: '8px',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-          }}>
-            {book.author}
-          </div>
-        )}
         {renderVoteButton(book, voted, true)}
       </div>
     )
@@ -445,10 +451,58 @@ export default function Home() {
           grid-template-columns: repeat(3, 1fr);
           gap: 10px;
         }
-        .book-tile { transition: box-shadow 0.2s ease, transform 0.2s ease; }
+        .book-tile {
+          transition: box-shadow 0.2s ease, transform 0.2s ease;
+          display: flex;
+          flex-direction: column;
+          height: 100%;
+        }
         .book-tile:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.08) !important; }
-        .book-tile .vote-btn { min-width: 0 !important; width: 100%; min-height: 44px !important; padding: 8px !important; flex-direction: row !important; gap: 6px !important; }
-        .book-tile .vote-count { font-size: 15px !important; }
+        .book-tile-body { flex: 1; min-height: 0; }
+        .book-tile-note {
+          font-size: 11px;
+          color: #6e6e73;
+          font-style: italic;
+          line-height: 1.4;
+          display: -webkit-box;
+          -webkit-line-clamp: 3;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+          margin: 6px 0 10px;
+        }
+        .book-tile .vote-btn-compact {
+          align-self: stretch;
+          flex-shrink: 0;
+          display: inline-flex !important;
+          flex-direction: row !important;
+          align-items: center !important;
+          justify-content: center !important;
+          gap: 5px !important;
+          margin-top: auto;
+          padding: 6px 10px !important;
+          min-height: 0 !important;
+          min-width: 0 !important;
+          width: 100% !important;
+          border-radius: 8px !important;
+          border: 1px solid rgba(0,0,0,0.12) !important;
+          background: linear-gradient(180deg, #fff 0%, #f5f5f7 100%) !important;
+          box-shadow: 0 1px 2px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.9) !important;
+          cursor: pointer;
+        }
+        .book-tile .vote-btn-compact:not(.voted):hover {
+          background: linear-gradient(180deg, #fff 0%, #f0ebe8 100%) !important;
+          border-color: rgba(139,32,32,0.35) !important;
+          box-shadow: 0 2px 6px rgba(139,32,32,0.12), inset 0 1px 0 rgba(255,255,255,0.9) !important;
+        }
+        .book-tile .vote-btn-compact:not(.voted):hover .vote-icon,
+        .book-tile .vote-btn-compact:not(.voted):hover .vote-count,
+        .book-tile .vote-btn-compact:not(.voted):hover .vote-label { color: #8B2020 !important; }
+        .book-tile .vote-btn-compact.voted {
+          background: linear-gradient(180deg, #9a2a2a 0%, #8B2020 100%) !important;
+          border-color: #7a1b1b !important;
+          box-shadow: 0 1px 3px rgba(139,32,32,0.35), inset 0 1px 0 rgba(255,255,255,0.15) !important;
+        }
+        .book-tile .vote-btn-compact.voted:hover { background: #7a1b1b !important; }
         @media (max-width: 900px) {
           .home-layout { flex-direction: column; padding: 0 20px; }
           .home-main { max-width: none; width: 100%; }
