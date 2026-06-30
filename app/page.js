@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { MEETING_POLL } from '@/lib/meetingPoll'
 
 const SYS = 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
 
@@ -32,6 +33,9 @@ export default function Home() {
   const [trendingStale, setTrendingStale] = useState(false)
   const [addingTrending, setAddingTrending] = useState(null)
   const [addedTrending, setAddedTrending] = useState(new Set())
+  const [meetingCounts, setMeetingCounts] = useState({})
+  const [meetingVotedKeys, setMeetingVotedKeys] = useState(new Set())
+  const [meetingLoading, setMeetingLoading] = useState(true)
 
   const fetchBooks = useCallback(async () => {
     setLoading(true)
@@ -49,6 +53,21 @@ export default function Home() {
     setPastLoading(false)
   }, [])
 
+  const fetchMeetingPoll = useCallback(async () => {
+    if (!voterToken) return
+    setMeetingLoading(true)
+    try {
+      const res = await fetch(
+        `/api/meeting?meeting_key=${MEETING_POLL.key}&voter_token=${voterToken}`
+      )
+      const data = await res.json()
+      setMeetingCounts(data.counts || {})
+      setMeetingVotedKeys(new Set(data.votedKeys || []))
+    } finally {
+      setMeetingLoading(false)
+    }
+  }, [voterToken])
+
   useEffect(() => {
     if (sort === 'past') {
       void fetchPastReads()
@@ -56,6 +75,10 @@ export default function Home() {
       void fetchBooks()
     }
   }, [sort, fetchBooks, fetchPastReads])
+
+  useEffect(() => {
+    void fetchMeetingPoll()
+  }, [fetchMeetingPoll])
 
   useEffect(() => {
     async function loadTrending() {
@@ -134,6 +157,35 @@ export default function Home() {
     localStorage.setItem('voted_ids', JSON.stringify([...newVoted]))
     setBooks(books.map(b => b.id === id ? { ...b, votes: b.votes + (voted ? 1 : -1) } : b))
   }
+
+  async function handleMeetingVote(slotKey) {
+    const res = await fetch('/api/meeting/vote', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        meeting_key: MEETING_POLL.key,
+        slot_key: slotKey,
+        voter_token: voterToken,
+      }),
+    })
+    const { voted } = await res.json()
+    setMeetingVotedKeys(prev => {
+      const next = new Set(prev)
+      if (voted) next.add(slotKey)
+      else next.delete(slotKey)
+      return next
+    })
+    setMeetingCounts(prev => ({
+      ...prev,
+      [slotKey]: Math.max(0, (prev[slotKey] || 0) + (voted ? 1 : -1)),
+    }))
+  }
+
+  const bestMeetingSlot = MEETING_POLL.slots.reduce((best, slot) => {
+    const count = meetingCounts[slot.key] || 0
+    if (!best || count > best.count) return { ...slot, count }
+    return best
+  }, null)
 
   const inputStyle = {
     width: '100%',
@@ -564,7 +616,7 @@ export default function Home() {
             <div>
               <span style={{ fontFamily: SYS, fontSize: '14px', fontWeight: 700, color: '#1a1a1a' }}>july pick is in!</span>
               <span style={{ fontFamily: SYS, fontSize: '13px', color: '#8B7355', marginLeft: '8px' }}>
-                book club live date announced soon on <a href="https://www.patreon.com/c/StayingUp" target="_blank" rel="noopener noreferrer" style={{ color: '#8B2020', textDecoration: 'none', fontWeight: 600 }}>Patreon</a>
+                vote on a time below ↓
               </span>
             </div>
           </div>
@@ -615,6 +667,96 @@ export default function Home() {
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* Time poll */}
+          <div style={{
+            background: '#fff',
+            border: '1px solid rgba(0,0,0,0.08)',
+            borderRadius: '16px',
+            padding: '18px 20px',
+            marginTop: '12px',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+          }}>
+            <div style={{ marginBottom: '14px' }}>
+              <div style={{ fontFamily: SYS, fontSize: '15px', fontWeight: 700, color: '#1d1d1f', marginBottom: '4px' }}>
+                When can you make it?
+              </div>
+              <div style={{ fontFamily: SYS, fontSize: '13px', color: '#6e6e73' }}>
+                Tap any times that work — skip the rest.
+              </div>
+            </div>
+
+            {meetingLoading ? (
+              <div style={{ fontFamily: SYS, fontSize: '13px', color: '#aeaeb2' }}>Loading times…</div>
+            ) : (
+              <>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {MEETING_POLL.slots.map(slot => {
+                    const voted = meetingVotedKeys.has(slot.key)
+                    const count = meetingCounts[slot.key] || 0
+                    const isBest = bestMeetingSlot?.key === slot.key && count > 0
+                    return (
+                      <div
+                        key={slot.key}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          gap: '12px',
+                          padding: '12px 14px',
+                          borderRadius: '12px',
+                          border: isBest ? '1.5px solid #8B2020' : '1px solid rgba(0,0,0,0.07)',
+                          background: isBest ? 'rgba(139,32,32,0.04)' : '#fafafa',
+                        }}
+                      >
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontFamily: SYS, fontSize: '14px', fontWeight: 600, color: '#1d1d1f' }}>
+                            {slot.label}
+                          </div>
+                          {count > 0 && (
+                            <div style={{ fontFamily: SYS, fontSize: '12px', color: '#6e6e73', marginTop: '2px' }}>
+                              {count} {count === 1 ? 'person' : 'people'} can make it
+                            </div>
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleMeetingVote(slot.key)}
+                          style={{
+                            flexShrink: 0,
+                            padding: '8px 14px',
+                            fontSize: '13px',
+                            fontWeight: 600,
+                            fontFamily: SYS,
+                            border: 'none',
+                            borderRadius: '980px',
+                            cursor: 'pointer',
+                            background: voted ? '#8B2020' : 'rgba(0,0,0,0.06)',
+                            color: voted ? '#fff' : '#1d1d1f',
+                            transition: 'background 0.15s ease',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {voted ? '✓ This works!' : 'This works!'}
+                        </button>
+                      </div>
+                    )
+                  })}
+                </div>
+                {bestMeetingSlot && bestMeetingSlot.count > 0 && (
+                  <div style={{
+                    fontFamily: SYS,
+                    fontSize: '12px',
+                    color: '#8B7355',
+                    marginTop: '12px',
+                    fontWeight: 600,
+                  }}>
+                    Best so far: {bestMeetingSlot.label} ({bestMeetingSlot.count} can make it)
+                  </div>
+                )}
+              </>
+            )}
           </div>
         </div>
 
