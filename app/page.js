@@ -511,6 +511,9 @@ export default function Home() {
           .meeting-day-label { min-width: 0 !important; margin-bottom: 8px; }
           .meeting-time-buttons { justify-content: flex-start !important; }
           .meeting-countdown-inner { flex-direction: column !important; align-items: flex-start !important; }
+          .meeting-schedule-header { flex-direction: column !important; align-items: stretch !important; }
+          .meeting-days-grid { grid-template-columns: 1fr !important; width: 100% !important; }
+          .meeting-day-row { width: 100% !important; }
         }
 
         .form-slide { animation: slideDown 0.22s ease; }
@@ -691,12 +694,24 @@ export default function Home() {
             </div>
 
             <div style={{ borderTop: '1px solid rgba(0,0,0,0.08)', paddingTop: '18px' }}>
-              <div style={{ marginBottom: '14px' }}>
-                <div style={{ fontFamily: SYS, fontSize: '15px', fontWeight: 700, color: '#1d1d1f', marginBottom: '4px' }}>
-                  When can you make it?
-                </div>
-                <div style={{ fontFamily: SYS, fontSize: '13px', color: '#6e6e73', marginBottom: '12px' }}>
-                  Tap any times that work — all times PT.
+              <div
+                className="meeting-schedule-header"
+                style={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  justifyContent: 'space-between',
+                  gap: '16px',
+                  marginBottom: '14px',
+                  flexWrap: 'wrap',
+                }}
+              >
+                <div style={{ flex: '1 1 200px', minWidth: 0 }}>
+                  <div style={{ fontFamily: SYS, fontSize: '15px', fontWeight: 700, color: '#1d1d1f', marginBottom: '4px' }}>
+                    When can you make it?
+                  </div>
+                  <div style={{ fontFamily: SYS, fontSize: '13px', color: '#6e6e73' }}>
+                    Tap any times that work — all times PT.
+                  </div>
                 </div>
 
                 {MEETING_POLL.voteDeadline && meetingCountdown && (
@@ -704,8 +719,8 @@ export default function Home() {
                     background: '#EDE8DD',
                     border: '1px solid #c8bfaa',
                     borderRadius: '12px',
-                    padding: '12px 14px',
-                    marginBottom: '14px',
+                    padding: '10px 12px',
+                    flexShrink: 0,
                     width: 'fit-content',
                     maxWidth: '100%',
                   }}>
@@ -714,18 +729,18 @@ export default function Home() {
                         Time voting closed — we&apos;ll announce the date on Patreon soon.
                       </div>
                     ) : (
-                      <div className="meeting-countdown-inner" style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
-                        <div style={{ fontFamily: SYS, fontSize: '13px', color: '#6e6e73', lineHeight: 1.4 }}>
-                          Pick a time by end of day{' '}
+                      <div className="meeting-countdown-inner" style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                        <div style={{ fontFamily: SYS, fontSize: '12px', color: '#6e6e73', lineHeight: 1.4, whiteSpace: 'nowrap' }}>
+                          Pick a time by{' '}
                           <strong style={{ color: '#8B2020' }}>{MEETING_POLL.voteDeadlineLabel}</strong>
                         </div>
-                        <div style={{ display: 'flex', gap: '6px' }}>
+                        <div style={{ display: 'flex', gap: '5px' }}>
                           {[['days', meetingCountdown.days], ['hrs', meetingCountdown.hours], ['min', meetingCountdown.mins], ['sec', meetingCountdown.secs]].map(([label, val]) => (
-                            <div key={label} style={{ background: '#F5F0E8', border: '1px solid #c8bfaa', borderRadius: '8px', padding: '6px 8px', minWidth: '38px', textAlign: 'center' }}>
-                              <div style={{ fontFamily: SYS, fontSize: '16px', fontWeight: 700, color: '#8B2020', fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>
+                            <div key={label} style={{ background: '#F5F0E8', border: '1px solid #c8bfaa', borderRadius: '8px', padding: '5px 7px', minWidth: '34px', textAlign: 'center' }}>
+                              <div style={{ fontFamily: SYS, fontSize: '14px', fontWeight: 700, color: '#8B2020', fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>
                                 {String(val).padStart(2, '0')}
                               </div>
-                              <div style={{ fontFamily: SYS, fontSize: '8px', letterSpacing: '1px', textTransform: 'uppercase', color: '#8B7355', marginTop: '2px' }}>
+                              <div style={{ fontFamily: SYS, fontSize: '7px', letterSpacing: '0.8px', textTransform: 'uppercase', color: '#8B7355', marginTop: '2px' }}>
                                 {label}
                               </div>
                             </div>
@@ -741,7 +756,16 @@ export default function Home() {
                 <div style={{ fontFamily: SYS, fontSize: '13px', color: '#aeaeb2' }}>Loading times…</div>
               ) : (
                 <>
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '8px' }}>
+                  <div
+                    className="meeting-days-grid"
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(2, auto)',
+                      gap: '8px',
+                      width: 'fit-content',
+                      maxWidth: '100%',
+                    }}
+                  >
                     {MEETING_POLL.days.map(day => (
                       <div
                         key={day.label}
