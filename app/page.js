@@ -892,9 +892,9 @@ export default function Home() {
               </h2>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {books.slice(0, 3).map((book, i) => renderFullBookCard(book, i))}
+              {books.slice(0, 5).map((book, i) => renderFullBookCard(book, i))}
             </div>
-            {books.length > 3 && (
+            {books.length > 5 && (
               <>
                 <p style={{
                   fontFamily: SYS,
@@ -907,7 +907,7 @@ export default function Home() {
                   More nominees
                 </p>
                 <div className="books-grid">
-                  {books.slice(3).map((book, i) => renderCompactBookTile(book, i + 3))}
+                  {books.slice(5).map((book, i) => renderCompactBookTile(book, i + 5))}
                 </div>
               </>
             )}
