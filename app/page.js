@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { MEETING_POLL } from '@/lib/meetingPoll'
+import { MEETING_POLL, getMeetingSlots } from '@/lib/meetingPoll'
 
 const SYS = 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
 
@@ -181,7 +181,7 @@ export default function Home() {
     }))
   }
 
-  const bestMeetingSlot = MEETING_POLL.slots.reduce((best, slot) => {
+  const bestMeetingSlot = getMeetingSlots().reduce((best, slot) => {
     const count = meetingCounts[slot.key] || 0
     if (!best || count > best.count) return { ...slot, count }
     return best
@@ -483,6 +483,10 @@ export default function Home() {
         @media (max-width: 600px) {
           .march-pick-inner { flex-direction: column !important; }
           .march-pick-cover { width: 80px !important; height: 112px !important; }
+          .meeting-day-row { flex-direction: column !important; align-items: stretch !important; }
+          .meeting-day-label { min-width: 0 !important; margin-bottom: 8px; }
+          .meeting-time-buttons { justify-content: stretch !important; }
+          .meeting-time-buttons button { flex: 1; }
         }
 
         .form-slide { animation: slideDown 0.22s ease; }
@@ -608,21 +612,14 @@ export default function Home() {
 
         <div className="home-layout">
         <div className="home-main">
-        {/* July Pick — hardcoded */}
+        {/* July Pick + time poll — single card */}
         <div style={{ marginBottom: '32px' }}>
-          {/* Announcement banner */}
-          <div style={{ background: '#EDE8DD', border: '1.5px solid #c8bfaa', borderRadius: '14px', padding: '14px 20px', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ fontSize: '20px' }}>🎉</span>
-            <div>
-              <span style={{ fontFamily: SYS, fontSize: '14px', fontWeight: 700, color: '#1a1a1a' }}>july pick is in!</span>
-              <span style={{ fontFamily: SYS, fontSize: '13px', color: '#8B7355', marginLeft: '8px' }}>
-                vote on a time below ↓
-              </span>
-            </div>
-          </div>
-
           <div style={{ background: '#fff', border: '2px solid #8B2020', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 20px rgba(139,32,32,0.08)' }}>
-            <div style={{ marginBottom: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', marginBottom: '16px', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '18px' }}>🎉</span>
+                <span style={{ fontFamily: SYS, fontSize: '14px', fontWeight: 700, color: '#1a1a1a' }}>july pick is in!</span>
+              </div>
               <span style={{
                 display: 'inline-block',
                 background: '#8B2020',
@@ -638,7 +635,8 @@ export default function Home() {
                 📖 July Pick
               </span>
             </div>
-            <div className="march-pick-inner" style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
+
+            <div className="march-pick-inner" style={{ display: 'flex', gap: '20px', alignItems: 'flex-start', marginBottom: '20px' }}>
               <a
                 href="https://www.goodreads.com/book/show/43317482-in-the-dream-house"
                 target="_blank"
@@ -667,96 +665,108 @@ export default function Home() {
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* Time poll */}
-          <div style={{
-            background: '#fff',
-            border: '1px solid rgba(0,0,0,0.08)',
-            borderRadius: '16px',
-            padding: '18px 20px',
-            marginTop: '12px',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
-          }}>
-            <div style={{ marginBottom: '14px' }}>
-              <div style={{ fontFamily: SYS, fontSize: '15px', fontWeight: 700, color: '#1d1d1f', marginBottom: '4px' }}>
-                When can you make it?
+            <div style={{ borderTop: '1px solid rgba(0,0,0,0.08)', paddingTop: '18px' }}>
+              <div style={{ marginBottom: '14px' }}>
+                <div style={{ fontFamily: SYS, fontSize: '15px', fontWeight: 700, color: '#1d1d1f', marginBottom: '4px' }}>
+                  When can you make it?
+                </div>
+                <div style={{ fontFamily: SYS, fontSize: '13px', color: '#6e6e73' }}>
+                  Tap any times that work — all times PT.
+                </div>
               </div>
-              <div style={{ fontFamily: SYS, fontSize: '13px', color: '#6e6e73' }}>
-                Tap any times that work — skip the rest.
-              </div>
-            </div>
 
-            {meetingLoading ? (
-              <div style={{ fontFamily: SYS, fontSize: '13px', color: '#aeaeb2' }}>Loading times…</div>
-            ) : (
-              <>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  {MEETING_POLL.slots.map(slot => {
-                    const voted = meetingVotedKeys.has(slot.key)
-                    const count = meetingCounts[slot.key] || 0
-                    const isBest = bestMeetingSlot?.key === slot.key && count > 0
-                    return (
+              {meetingLoading ? (
+                <div style={{ fontFamily: SYS, fontSize: '13px', color: '#aeaeb2' }}>Loading times…</div>
+              ) : (
+                <>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    {MEETING_POLL.days.map(day => (
                       <div
-                        key={slot.key}
+                        key={day.label}
+                        className="meeting-day-row"
                         style={{
                           display: 'flex',
                           alignItems: 'center',
-                          justifyContent: 'space-between',
-                          gap: '12px',
+                          gap: '14px',
                           padding: '12px 14px',
                           borderRadius: '12px',
-                          border: isBest ? '1.5px solid #8B2020' : '1px solid rgba(0,0,0,0.07)',
-                          background: isBest ? 'rgba(139,32,32,0.04)' : '#fafafa',
+                          border: '1px solid rgba(0,0,0,0.07)',
+                          background: '#fafafa',
                         }}
                       >
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontFamily: SYS, fontSize: '14px', fontWeight: 600, color: '#1d1d1f' }}>
-                            {slot.label}
-                          </div>
-                          {count > 0 && (
-                            <div style={{ fontFamily: SYS, fontSize: '12px', color: '#6e6e73', marginTop: '2px' }}>
-                              {count} {count === 1 ? 'person' : 'people'} can make it
-                            </div>
-                          )}
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => handleMeetingVote(slot.key)}
+                        <div
+                          className="meeting-day-label"
                           style={{
                             flexShrink: 0,
-                            padding: '8px 14px',
-                            fontSize: '13px',
-                            fontWeight: 600,
+                            minWidth: '88px',
                             fontFamily: SYS,
-                            border: 'none',
-                            borderRadius: '980px',
-                            cursor: 'pointer',
-                            background: voted ? '#8B2020' : 'rgba(0,0,0,0.06)',
-                            color: voted ? '#fff' : '#1d1d1f',
-                            transition: 'background 0.15s ease',
-                            whiteSpace: 'nowrap',
+                            fontSize: '14px',
+                            fontWeight: 600,
+                            color: '#1d1d1f',
                           }}
                         >
-                          {voted ? '✓ This works!' : 'This works!'}
-                        </button>
+                          {day.label}
+                        </div>
+                        <div
+                          className="meeting-time-buttons"
+                          style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', flex: 1 }}
+                        >
+                          {day.times.map(time => {
+                            const voted = meetingVotedKeys.has(time.key)
+                            const count = meetingCounts[time.key] || 0
+                            const isBest = bestMeetingSlot?.key === time.key && count > 0
+                            return (
+                              <button
+                                key={time.key}
+                                type="button"
+                                onClick={() => handleMeetingVote(time.key)}
+                                style={{
+                                  padding: '8px 14px',
+                                  fontSize: '13px',
+                                  fontWeight: 600,
+                                  fontFamily: SYS,
+                                  border: isBest ? '1.5px solid #8B2020' : 'none',
+                                  borderRadius: '10px',
+                                  cursor: 'pointer',
+                                  background: voted ? '#8B2020' : 'rgba(0,0,0,0.06)',
+                                  color: voted ? '#fff' : '#1d1d1f',
+                                  transition: 'background 0.15s ease',
+                                  whiteSpace: 'nowrap',
+                                }}
+                              >
+                                {voted ? `✓ ${time.label}` : time.label}
+                                {count > 0 && (
+                                  <span style={{
+                                    marginLeft: '6px',
+                                    fontSize: '11px',
+                                    fontWeight: 600,
+                                    color: voted ? 'rgba(255,255,255,0.75)' : '#6e6e73',
+                                  }}>
+                                    · {count}
+                                  </span>
+                                )}
+                              </button>
+                            )
+                          })}
+                        </div>
                       </div>
-                    )
-                  })}
-                </div>
-                {bestMeetingSlot && bestMeetingSlot.count > 0 && (
-                  <div style={{
-                    fontFamily: SYS,
-                    fontSize: '12px',
-                    color: '#8B7355',
-                    marginTop: '12px',
-                    fontWeight: 600,
-                  }}>
-                    Best so far: {bestMeetingSlot.label} ({bestMeetingSlot.count} can make it)
+                    ))}
                   </div>
-                )}
-              </>
-            )}
+                  {bestMeetingSlot && bestMeetingSlot.count > 0 && (
+                    <div style={{
+                      fontFamily: SYS,
+                      fontSize: '12px',
+                      color: '#8B7355',
+                      marginTop: '12px',
+                      fontWeight: 600,
+                    }}>
+                      Best so far: {bestMeetingSlot.fullLabel} ({bestMeetingSlot.count} can make it)
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
           </div>
         </div>
 
