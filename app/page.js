@@ -36,6 +36,7 @@ export default function Home() {
   const [meetingCounts, setMeetingCounts] = useState({})
   const [meetingVotedKeys, setMeetingVotedKeys] = useState(new Set())
   const [meetingLoading, setMeetingLoading] = useState(true)
+  const [meetingCountdown, setMeetingCountdown] = useState(null)
 
   const fetchBooks = useCallback(async () => {
     setLoading(true)
@@ -79,6 +80,27 @@ export default function Home() {
   useEffect(() => {
     void fetchMeetingPoll()
   }, [fetchMeetingPoll])
+
+  useEffect(() => {
+    if (!MEETING_POLL.voteDeadline) return undefined
+    const deadline = new Date(MEETING_POLL.voteDeadline)
+    function tick() {
+      const diff = deadline - Date.now()
+      if (diff <= 0) {
+        setMeetingCountdown('closed')
+        return
+      }
+      setMeetingCountdown({
+        days: Math.floor(diff / 86400000),
+        hours: Math.floor((diff % 86400000) / 3600000),
+        mins: Math.floor((diff % 3600000) / 60000),
+        secs: Math.floor((diff % 60000) / 1000),
+      })
+    }
+    tick()
+    const id = setInterval(tick, 1000)
+    return () => clearInterval(id)
+  }, [])
 
   useEffect(() => {
     async function loadTrending() {
@@ -186,6 +208,8 @@ export default function Home() {
     if (!best || count > best.count) return { ...slot, count }
     return best
   }, null)
+
+  const meetingPollClosed = meetingCountdown === 'closed'
 
   const inputStyle = {
     width: '100%',
@@ -485,8 +509,8 @@ export default function Home() {
           .march-pick-cover { width: 80px !important; height: 112px !important; }
           .meeting-day-row { flex-direction: column !important; align-items: stretch !important; }
           .meeting-day-label { min-width: 0 !important; margin-bottom: 8px; }
-          .meeting-time-buttons { justify-content: stretch !important; }
-          .meeting-time-buttons button { flex: 1; }
+          .meeting-time-buttons { justify-content: flex-start !important; }
+          .meeting-countdown-inner { flex-direction: column !important; align-items: flex-start !important; }
         }
 
         .form-slide { animation: slideDown 0.22s ease; }
@@ -671,35 +695,74 @@ export default function Home() {
                 <div style={{ fontFamily: SYS, fontSize: '15px', fontWeight: 700, color: '#1d1d1f', marginBottom: '4px' }}>
                   When can you make it?
                 </div>
-                <div style={{ fontFamily: SYS, fontSize: '13px', color: '#6e6e73' }}>
+                <div style={{ fontFamily: SYS, fontSize: '13px', color: '#6e6e73', marginBottom: '12px' }}>
                   Tap any times that work — all times PT.
                 </div>
+
+                {MEETING_POLL.voteDeadline && meetingCountdown && (
+                  <div style={{
+                    background: '#EDE8DD',
+                    border: '1px solid #c8bfaa',
+                    borderRadius: '12px',
+                    padding: '12px 14px',
+                    marginBottom: '14px',
+                    width: 'fit-content',
+                    maxWidth: '100%',
+                  }}>
+                    {meetingPollClosed ? (
+                      <div style={{ fontFamily: SYS, fontSize: '13px', fontWeight: 600, color: '#8B7355' }}>
+                        Time voting closed — we&apos;ll announce the date on Patreon soon.
+                      </div>
+                    ) : (
+                      <div className="meeting-countdown-inner" style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+                        <div style={{ fontFamily: SYS, fontSize: '13px', color: '#6e6e73', lineHeight: 1.4 }}>
+                          Pick a time by end of day{' '}
+                          <strong style={{ color: '#8B2020' }}>{MEETING_POLL.voteDeadlineLabel}</strong>
+                        </div>
+                        <div style={{ display: 'flex', gap: '6px' }}>
+                          {[['days', meetingCountdown.days], ['hrs', meetingCountdown.hours], ['min', meetingCountdown.mins], ['sec', meetingCountdown.secs]].map(([label, val]) => (
+                            <div key={label} style={{ background: '#F5F0E8', border: '1px solid #c8bfaa', borderRadius: '8px', padding: '6px 8px', minWidth: '38px', textAlign: 'center' }}>
+                              <div style={{ fontFamily: SYS, fontSize: '16px', fontWeight: 700, color: '#8B2020', fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>
+                                {String(val).padStart(2, '0')}
+                              </div>
+                              <div style={{ fontFamily: SYS, fontSize: '8px', letterSpacing: '1px', textTransform: 'uppercase', color: '#8B7355', marginTop: '2px' }}>
+                                {label}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               {meetingLoading ? (
                 <div style={{ fontFamily: SYS, fontSize: '13px', color: '#aeaeb2' }}>Loading times…</div>
               ) : (
                 <>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '8px' }}>
                     {MEETING_POLL.days.map(day => (
                       <div
                         key={day.label}
                         className="meeting-day-row"
                         style={{
-                          display: 'flex',
+                          display: 'inline-flex',
                           alignItems: 'center',
-                          gap: '14px',
-                          padding: '12px 14px',
+                          gap: '12px',
+                          padding: '10px 12px',
                           borderRadius: '12px',
                           border: '1px solid rgba(0,0,0,0.07)',
                           background: '#fafafa',
+                          width: 'fit-content',
+                          maxWidth: '100%',
                         }}
                       >
                         <div
                           className="meeting-day-label"
                           style={{
                             flexShrink: 0,
-                            minWidth: '88px',
+                            minWidth: '84px',
                             fontFamily: SYS,
                             fontSize: '14px',
                             fontWeight: 600,
@@ -710,7 +773,7 @@ export default function Home() {
                         </div>
                         <div
                           className="meeting-time-buttons"
-                          style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', flex: 1 }}
+                          style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}
                         >
                           {day.times.map(time => {
                             const voted = meetingVotedKeys.has(time.key)
@@ -721,14 +784,16 @@ export default function Home() {
                                 key={time.key}
                                 type="button"
                                 onClick={() => handleMeetingVote(time.key)}
+                                disabled={meetingPollClosed}
                                 style={{
-                                  padding: '8px 14px',
+                                  padding: '7px 12px',
                                   fontSize: '13px',
                                   fontWeight: 600,
                                   fontFamily: SYS,
                                   border: isBest ? '1.5px solid #8B2020' : 'none',
                                   borderRadius: '10px',
-                                  cursor: 'pointer',
+                                  cursor: meetingPollClosed ? 'not-allowed' : 'pointer',
+                                  opacity: meetingPollClosed ? 0.55 : 1,
                                   background: voted ? '#8B2020' : 'rgba(0,0,0,0.06)',
                                   color: voted ? '#fff' : '#1d1d1f',
                                   transition: 'background 0.15s ease',
