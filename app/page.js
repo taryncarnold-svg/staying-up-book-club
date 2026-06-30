@@ -556,15 +556,15 @@ export default function Home() {
 
         <div className="home-layout">
         <div className="home-main">
-        {/* June Pick — hardcoded */}
+        {/* July Pick — hardcoded */}
         <div style={{ marginBottom: '32px' }}>
           {/* Announcement banner */}
           <div style={{ background: '#EDE8DD', border: '1.5px solid #c8bfaa', borderRadius: '14px', padding: '14px 20px', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '10px' }}>
             <span style={{ fontSize: '20px' }}>🎉</span>
             <div>
-              <span style={{ fontFamily: SYS, fontSize: '14px', fontWeight: 700, color: '#1a1a1a' }}>june pick is in!</span>
+              <span style={{ fontFamily: SYS, fontSize: '14px', fontWeight: 700, color: '#1a1a1a' }}>july pick is in!</span>
               <span style={{ fontFamily: SYS, fontSize: '13px', color: '#8B7355', marginLeft: '8px' }}>
-                <a href="https://app.rallly.co/invite/j9scxlIiPypN" target="_blank" rel="noopener noreferrer" style={{ color: '#8B2020', textDecoration: 'none', fontWeight: 600 }}>vote on a time ↗</a>
+                book club live date announced soon on <a href="https://www.patreon.com/c/StayingUp" target="_blank" rel="noopener noreferrer" style={{ color: '#8B2020', textDecoration: 'none', fontWeight: 600 }}>Patreon</a>
               </span>
             </div>
           </div>
@@ -583,35 +583,35 @@ export default function Home() {
                 padding: '4px 10px',
                 borderRadius: '6px',
               }}>
-                📖 June Pick
+                📖 July Pick
               </span>
             </div>
             <div className="march-pick-inner" style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
               <a
-                href="https://www.goodreads.com/book/show/217387788-no-body-no-crime"
+                href="https://www.goodreads.com/book/show/43317482-in-the-dream-house"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="march-pick-cover"
                 style={{ flexShrink: 0, display: 'block', width: '96px', height: '134px', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 4px 14px rgba(0,0,0,0.15)' }}
               >
                 <img
-                  src="https://m.media-amazon.com/images/S/compressed.photo.goodreads.com/books/1740992505i/217387788.jpg"
-                  alt="No Body No Crime"
+                  src="https://m.media-amazon.com/images/S/compressed.photo.goodreads.com/books/1547869259i/43317482.jpg"
+                  alt="In the Dream House"
                   style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                 />
               </a>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <a
-                  href="https://www.goodreads.com/book/show/217387788-no-body-no-crime"
+                  href="https://www.goodreads.com/book/show/43317482-in-the-dream-house"
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{ fontFamily: SYS, fontSize: '20px', fontWeight: 700, color: '#1d1d1f', lineHeight: 1.2, textDecoration: 'none', display: 'block', marginBottom: '4px' }}
                 >
-                  No Body No Crime
+                  In the Dream House
                 </a>
-                <div style={{ fontFamily: SYS, fontSize: '14px', color: '#6e6e73', marginBottom: '10px' }}>Tess Sharpe</div>
+                <div style={{ fontFamily: SYS, fontSize: '14px', color: '#6e6e73', marginBottom: '10px' }}>Carmen Maria Machado</div>
                 <div style={{ fontFamily: SYS, fontSize: '13px', color: '#6e6e73', fontStyle: 'italic', lineHeight: 1.5 }}>
-                  &quot;A propulsive thriller about two exes reunited by disaster, secrets, and a crime that still binds them.&quot;
+                  &quot;A genre-bending memoir of love, abuse, and survival, told in haunting, inventive vignettes.&quot;
                 </div>
               </div>
             </div>
@@ -888,7 +888,7 @@ export default function Home() {
             <>
             <div style={{ marginBottom: '16px' }}>
               <h2 style={{ fontFamily: SYS, fontSize: '20px', fontWeight: 700, color: '#1d1d1f', margin: 0 }}>
-                What will our July read be? 📚
+                What will our August read be? 📚
               </h2>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
